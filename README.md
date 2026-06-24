@@ -1,22 +1,22 @@
-# PureBasicNanoMsg
+# PureBasicNanoMsg  
 
 Nanomsg Wrapper for PureBasic Programming Language.
 
 ![GitHub](https://img.shields.io/github/license/jiowcl/PureBasicNanoMsg.svg)
 ![PureBasic](https://img.shields.io/badge/language-PureBasic-blue.svg)
 
-## Environment
+## Environment  
 
 - Windows 7 above (recommend)  
 - PureBasic 6.0 above (recommend)  
 - [Nanomsg](https://github.com/nanomsg)  
 
-## How to Build
+## How to Build  
 
 Building requires PureBasic Compiler and test under Windows 10.  
 Module features require PureBasic 5.20 and above.
 
-## Example
+## Example  
 
 Publisher Server
 
@@ -142,16 +142,16 @@ If DllOpen(lpszLibNnDll)
 EndIf
 ```
 
-## License
+## License  
 
-Copyright (c) 2017-2024 Ji-Feng Tsai.  
+Copyright (c) 2017-2026 Ji-Feng Tsai.  
 Code released under the MIT license.  
 
-## TODO
+## TODO  
 
 - More examples  
 
-## Donation
+## Donation  
 
 If this application help you reduce time to coding, you can give me a cup of coffee :)
 
