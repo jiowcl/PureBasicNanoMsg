@@ -42,7 +42,7 @@ Module NanomsgWrapper
   ; <summary>
   ; DllOpen
   ; </summary>
-  ; <param name="lpszDllPath"></param>
+  ; <param name="lpszDllPath">string</param>
   ; <returns>Returns integer.</returns>
   Procedure.i DllOpen(lpszDllPath.s)
     If IsLibrary(dllInstance)
@@ -57,7 +57,6 @@ Module NanomsgWrapper
   ; <summary>
   ; DllClose
   ; </summary>
-  ; <param name="dllInstance"></param>
   ; <returns>Returns integer.</returns>
   Procedure.i DllClose()
     ProcedureReturn NnDllClose(dllInstance)
@@ -79,7 +78,7 @@ Module NanomsgRuntime
   ; <summary>
   ; Strerror
   ; </summary>
-  ; <param name="errnum"></param>
+  ; <param name="errnum">integer</param>
   ; <returns>Returns string.</returns>
   Procedure.s Strerror(errnum.i)
     ProcedureReturn NnStrerror(NanomsgWrapper::dllInstance, errnum)
@@ -88,8 +87,8 @@ Module NanomsgRuntime
   ; <summary>
   ; Symbol
   ; </summary>
-  ; <param name="index"></param>
-  ; <param name="value"></param>
+  ; <param name="index">integer</param>
+  ; <param name="value">long</param>
   ; <returns>Returns string.</returns>
   Procedure.s Symbol(index.i, *value.Long)
     ProcedureReturn NnSymbol(NanomsgWrapper::dllInstance, index, *value)
@@ -105,8 +104,8 @@ Module NanomsgSocket
   ; <summary>
   ; Socket
   ; </summary>
-  ; <param name="domain"></param>
-  ; <param name="protocol"></param>
+  ; <param name="domain">integer</param>
+  ; <param name="protocol">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Socket(domain.i, protocol.i)
     ProcedureReturn NnSocket(NanomsgWrapper::dllInstance, domain, protocol)
@@ -115,7 +114,7 @@ Module NanomsgSocket
   ; <summary>
   ; Close
   ; </summary>
-  ; <param name="socket"></param>
+  ; <param name="socket">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Close(socket.i)   
     ProcedureReturn NnClose(NanomsgWrapper::dllInstance, socket)
@@ -124,11 +123,11 @@ Module NanomsgSocket
   ; <summary>
   ; Setsockopt
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="level"></param>
-  ; <param name="option"></param>
-  ; <param name="optval"></param>
-  ; <param name="optvallen"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="level">integer</param>
+  ; <param name="option">integer</param>
+  ; <param name="optval">string</param>
+  ; <param name="optvallen">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Setsockopt(socket.i, level.i, option.i, optval.s, optvallen.i)
     ProcedureReturn NnSetsockopt(NanomsgWrapper::dllInstance, socket, level, option, optval, optvallen)
@@ -137,11 +136,11 @@ Module NanomsgSocket
   ; <summary>
   ; Getsockopt
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="level"></param>
-  ; <param name="option"></param>
-  ; <param name="*optval"></param>
-  ; <param name="optvallen"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="level">integer</param>
+  ; <param name="option">integer</param>
+  ; <param name="*optval">pointer</param>
+  ; <param name="optvallen">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Getsockopt(socket.i, level.i, option.i, *optval, optvallen.i)
     ProcedureReturn NnGetsockopt(NanomsgWrapper::dllInstance, socket, level, option, *optval, optvallen)
@@ -150,8 +149,8 @@ Module NanomsgSocket
   ; <summary>
   ; Bind
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="addr"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="addr">string</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Bind(socket.i, addr.s)
     ProcedureReturn NnBind(NanomsgWrapper::dllInstance, socket, addr)
@@ -160,8 +159,8 @@ Module NanomsgSocket
   ; <summary>
   ; Connect
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="addr"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="addr">string</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Connect(socket.i, addr.s)
     ProcedureReturn NnConnect(NanomsgWrapper::dllInstance, socket, addr)
@@ -170,8 +169,8 @@ Module NanomsgSocket
   ; <summary>
   ; Shutdown
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="how"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="how">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Shutdown(socket.i, how.i)
     ProcedureReturn NnShutdown(NanomsgWrapper::dllInstance, socket, how)
@@ -180,10 +179,10 @@ Module NanomsgSocket
   ; <summary>
   ; Send
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="buf"></param>
-  ; <param name="len"></param>
-  ; <param name="flags"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="buf">string</param>
+  ; <param name="len">integer</param>
+  ; <param name="flags">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Send(socket.i, buf.s, len.i, flags.i)
     ProcedureReturn NnSend(NanomsgWrapper::dllInstance, socket, buf, len, flags)
@@ -192,10 +191,10 @@ Module NanomsgSocket
   ; <summary>
   ; Recv
   ; </summary>
-  ; <param name="socket"></param>
-  ; <param name="*buf"></param>
-  ; <param name="len"></param>
-  ; <param name="flags"></param>
+  ; <param name="socket">integer</param>
+  ; <param name="*buf">integer</param>
+  ; <param name="len">integer</param>
+  ; <param name="flags">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Recv(socket.i, *buf, len.i, flags.i)
     ProcedureReturn NnRecv(NanomsgWrapper::dllInstance, socket, *buf, len, flags)

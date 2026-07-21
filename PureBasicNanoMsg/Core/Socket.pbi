@@ -19,9 +19,9 @@ PrototypeC.i NnRecvFunc(socket.i, *buf.p-Ascii, len.i, flags.i)
 ; <summary>
 ; NnSocket
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="domain"></param>
-; <param name="protocol"></param>
+; <param name="dllInstance">integer</param>
+; <param name="domain">integer</param>
+; <param name="protocol">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnSocket(dllInstance.i, domain.i, protocol.i)
   Protected.i lResult
@@ -41,8 +41,8 @@ EndProcedure
 ; <summary>
 ; NnClose
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnClose(dllInstance.i, socket.i)
   Protected.i lResult
@@ -62,12 +62,12 @@ EndProcedure
 ; <summary>
 ; NnSetsockopt
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="level"></param>
-; <param name="option"></param>
-; <param name="optval"></param>
-; <param name="optvallen"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="level">integer</param>
+; <param name="option">integer</param>
+; <param name="optval">string</param>
+; <param name="optvallen">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnSetsockopt(dllInstance.i, socket.i, level.i, option.i, optval.s, optvallen.i)
   Protected.i lResult
@@ -87,12 +87,12 @@ EndProcedure
 ; <summary>
 ; NnGetsockopt
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="level"></param>
-; <param name="option"></param>
-; <param name="optval"></param>
-; <param name="optvallen"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="level">integer</param>
+; <param name="option">integer</param>
+; <param name="optval">pointer</param>
+; <param name="optvallen">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnGetsockopt(dllInstance.i, socket.i, level.i, option.i, *optval, optvallen.i)
   Protected.i lResult
@@ -112,9 +112,9 @@ EndProcedure
 ; <summary>
 ; NnBind
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="addr"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="addr">string</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnBind(dllInstance.i, socket.i, addr.s)
   Protected.i lResult
@@ -134,9 +134,9 @@ EndProcedure
 ; <summary>
 ; NnConnect
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="addr"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="addr">string</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnConnect(dllInstance.i, socket.i, addr.s)
   Protected.i lResult
@@ -156,9 +156,9 @@ EndProcedure
 ; <summary>
 ; NnShutdown
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="how"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="how">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnShutdown(dllInstance.i, socket.i, how.i)
   Protected.i lResult
@@ -178,11 +178,11 @@ EndProcedure
 ; <summary>
 ; NnSend
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="buf"></param>
-; <param name="len"></param>
-; <param name="flags"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="buf">integer</param>
+; <param name="len">integer</param>
+; <param name="flags">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnSend(dllInstance.i, socket.i, buf.s, len.i, flags.i)
   Protected.i lResult
@@ -202,11 +202,11 @@ EndProcedure
 ; <summary>
 ; NnRecv
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="socket"></param>
-; <param name="buf"></param>
-; <param name="len"></param>
-; <param name="flags"></param>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="buf">string</param>
+; <param name="len">integer</param>
+; <param name="flags">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnRecv(dllInstance.i, socket.i, *buf.String, len.i, flags.i)
   Protected.i lResult

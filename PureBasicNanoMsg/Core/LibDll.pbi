@@ -10,7 +10,7 @@ Declare.i NnDllClose(dllInstance.i)
 ; <summary>
 ; NnDllOpen
 ; </summary>
-; <param name="lpszDllPath"></param>
+; <param name="lpszDllPath">string</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnDllOpen(lpszDllPath.s)
   ProcedureReturn OpenLibrary(#PB_Any, lpszDllPath)
@@ -19,7 +19,7 @@ EndProcedure
 ; <summary>
 ; NnDllClose
 ; </summary>
-; <param name="dllInstance"></param>
+; <param name="dllInstance">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnDllClose(dllInstance.i)
   If IsLibrary(dllInstance)

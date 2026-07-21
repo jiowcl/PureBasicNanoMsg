@@ -13,7 +13,7 @@ PrototypeC.i NnSymbolFunc(index.i, *value.Long)
 ; <summary>
 ; NnErrno
 ; </summary>
-; <param name="dllInstance"></param>
+; <param name="dllInstance">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnErrno(dllInstance.i)
   Protected.i lResult
@@ -33,8 +33,8 @@ EndProcedure
 ; <summary>
 ; NnStrerror
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="errnum"></param>
+; <param name="dllInstance">integer</param>
+; <param name="errnum">integer</param>
 ; <returns>Returns string.</returns>
 Procedure.s NnStrerror(dllInstance.i, errnum.i)
   Protected.s lResult
@@ -54,9 +54,9 @@ EndProcedure
 ; <summary>
 ; NnSymbol
 ; </summary>
-; <param name="dllInstance"></param>
-; <param name="index"></param>
-; <param name="value"></param>
+; <param name="dllInstance">integer</param>
+; <param name="index">integer</param>
+; <param name="value">long</param>
 ; <returns>Returns string.</returns>
 Procedure.s NnSymbol(dllInstance.i, index.i, *value.Long)
   Protected.s lResult
