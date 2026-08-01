@@ -9,12 +9,24 @@ Nanomsg Wrapper for PureBasic Programming Language.
 
 - Windows 7 above (recommend)  
 - PureBasic 6.0 above (recommend)  
-- [Nanomsg](https://github.com/nanomsg)  
+- [Nanomsg](https://github.com/nanomsg/nanomsg)  
 
 ## How to Build  
 
 Building requires PureBasic Compiler and test under Windows 10.  
 Module features require PureBasic 5.20 and above.
+
+Bundled runtime: `PureBasicNanoMsg/Library/x64/nanomsg.dll` (x64 only).
+
+## API Notes  
+
+- `NnSetsockopt` / `NanomsgSocket::Setsockopt` take a pointer (`*optval`).
+- Use `NnSetsockoptString` / `SetsockoptString` for topic strings (`NN_SUB_SUBSCRIBE`).
+- Use `NnSetsockoptInt` / `SetsockoptInt` for integer options (`NN_RCVTIMEO`, …).
+- `NnGetsockopt` requires `*optvallen` (in/out length), matching the C API.
+- `NnSend` takes a buffer pointer; use `NnSendString` / `SendString` for text.
+- `NnPoll` + `NnPollFd` support non-blocking readiness checks.
+- Zero-copy helpers: `NnAllocmsg` / `NnReallocmsg` / `NnFreemsg` with `#NN_MSG`.
 
 ## Example  
 
@@ -36,6 +48,8 @@ CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
   Global lpszLibNnDll.s = lpszCurrentDir + lpszLibNnDir + "/nanomsg.dll"
   
   SetCurrentDirectory(lpszCurrentDir + lpszLibNnDir)
+CompilerElse
+  CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://*:1689"
@@ -49,24 +63,13 @@ If DllOpen(lpszLibNnDll)
   PrintN("Bind an IP address: " + lpszServerAddr)
   
   While 1
-    Define *lpszBuffer = AllocateMemory(32)
     Define lpszTopic.s = "quotes"
     Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
     
-    NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
+    NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
+    PrintN("Published: " + lpszMessage)
     
-    Delay(10)
-    
-    Define lpszReturnMessage.s = PeekS(*lpszBuffer, -1, #PB_UTF8)
-    
-    If lpszReturnMessage <> ""
-      PrintN("Received: ")
-      PrintN(lpszReturnMessage)
-    EndIf
-    
-    NanomsgSocket::Send(Socket, lpszMessage, Len(lpszMessage), 0)
-    
-    FreeMemory(*lpszBuffer)
+    Delay(500)
   Wend
   
   NanomsgSocket::Close(Socket)
@@ -95,6 +98,8 @@ CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
   Global lpszLibNnDll.s = lpszCurrentDir + lpszLibNnDir + "/nanomsg.dll"
   
   SetCurrentDirectory(lpszCurrentDir + lpszLibNnDir)
+CompilerElse
+  CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://localhost:1689"
@@ -107,26 +112,14 @@ If DllOpen(lpszLibNnDll)
   
   Define lpszSubscribe.s = "quotes"
   
-  NanomsgSocket::Setsockopt(Socket, #NN_SUB, #NN_SUB_SUBSCRIBE, lpszSubscribe, Len(lpszSubscribe))
-  
-;   Define i.i
-;
-;   For i = 0 To 10 
-;     *lpszBuffer = AllocateMemory(32)
-;     
-;     NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
-;     
-;     PrintN( PeekS(*lpszBuffer, -1, #PB_UTF8) )
-;     
-;     FreeMemory(*lpszBuffer)
-;   Next
+  NanomsgSocket::SetsockoptString(Socket, #NN_SUB, #NN_SUB_SUBSCRIBE, lpszSubscribe)
   
   While 1
-    Define *lpszBuffer = AllocateMemory(32)
+    Define *lpszBuffer = AllocateMemory(256)
     
-    NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
-    
-    PrintN( PeekS(*lpszBuffer, -1, #PB_UTF8) )
+    If NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
+      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
+    EndIf
     
     FreeMemory(*lpszBuffer)
     
@@ -142,6 +135,8 @@ If DllOpen(lpszLibNnDll)
 EndIf
 ```
 
+More samples under `PureBasicNanoMsg/Example` (PUB/SUB, REQ/REP, PUSH/PULL with `NnPoll`).
+
 ## License  
 
 Copyright (c) 2017-2026 Ji-Feng Tsai.  
@@ -149,7 +144,8 @@ Code released under the MIT license.
 
 ## TODO  
 
-- More examples  
+- Survey / Bus / Pair examples  
+- `nn_sendmsg` / `nn_recvmsg` / `nn_device`  
 
 ## Donation  
 

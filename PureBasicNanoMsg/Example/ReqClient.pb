@@ -15,6 +15,8 @@ CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
   Global lpszLibNnDll.s = lpszCurrentDir + lpszLibNnDir + "/nanomsg.dll"
   
   SetCurrentDirectory(lpszCurrentDir + lpszLibNnDir)
+CompilerElse
+  CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://localhost:1700"
@@ -32,14 +34,15 @@ If hLibrary
   Define i.i
   
   For i = 0 To 10 
-    Define *lpszBuffer = AllocateMemory(32)
+    Define *lpszBuffer = AllocateMemory(256)
     Define lpszMessage.s = "From Client"
     
-    NnSend(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
+    NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
     
-    PrintN("Reply From Server: ")
-    PrintN( PeekS(*lpszBuffer, -1, #PB_UTF8) )
+    If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
+      PrintN("Reply From Server: ")
+      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
+    EndIf
     
     FreeMemory(*lpszBuffer)
   Next 
@@ -59,6 +62,6 @@ EndIf
 ; CurrentDirectory = ..\
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
-; VersionField3 = PureBasicZMQ
+; VersionField3 = PureBasicNanoMsg
 ; VersionField9 = Ji-Feng Tsai
 ; VersionField13 = jiowcl@gmail.com

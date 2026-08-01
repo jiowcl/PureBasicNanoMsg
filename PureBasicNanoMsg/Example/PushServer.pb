@@ -1,4 +1,4 @@
-﻿;--------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------
 ;  Copyright (c) Ji-Feng Tsai. All rights reserved.
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
@@ -19,14 +19,14 @@ CompilerElse
   CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
-Global lpszServerAddr.s = "tcp://*:1700"
+Global lpszServerAddr.s = "tcp://*:1701"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
 If hLibrary
   OpenConsole()
   
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_REP)
+  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PUSH)
   Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
   
   PrintN("Bind an IP address: " + lpszServerAddr)
@@ -36,17 +36,12 @@ If hLibrary
   While 1
     lTotal = lTotal + 1
     
-    Define *lpszBuffer = AllocateMemory(256)
-    Define lpszMessage.s = "Hi " + lTotal
+    Define lpszMessage.s = "Task #" + lTotal
     
-    If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN("Received: ")
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
-      
-      NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    EndIf
+    NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
+    PrintN("Pushed: " + lpszMessage)
     
-    FreeMemory(*lpszBuffer)
+    Delay(500)
   Wend
   
   NnClose(hLibrary, Socket)
@@ -59,8 +54,8 @@ EndIf
 ; CursorPosition = 26
 ; Folding = -
 ; EnableXP
-; Executable = ..\RepServer.exe
-; CurrentDirectory = ..\
+; Executable = ..\PushServer.exe
+; CurrentDirectory = ../
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
 ; VersionField3 = PureBasicNanoMsg

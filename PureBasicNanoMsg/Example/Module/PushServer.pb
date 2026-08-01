@@ -1,11 +1,14 @@
-﻿;--------------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------------
 ;  Copyright (c) Ji-Feng Tsai. All rights reserved.
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
 
 EnableExplicit
 
-IncludeFile "../Core/Nanomsg.pbi"
+IncludeFile "../../Core/Enums.pbi"
+IncludeFile "../../Core/NanomsgWrapper.pbi"
+
+UseModule NanomsgWrapper
 
 Global lpszCurrentDir.s = GetCurrentDirectory()
 
@@ -19,15 +22,13 @@ CompilerElse
   CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
-Global lpszServerAddr.s = "tcp://*:1700"
+Global lpszServerAddr.s = "tcp://*:1701"
 
-Global hLibrary.i = NnDllOpen(lpszLibNnDll)
-
-If hLibrary
+If DllOpen(lpszLibNnDll)
   OpenConsole()
   
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_REP)
-  Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PUSH)
+  Define Rc.i = NanomsgSocket::Bind(Socket, lpszServerAddr)
   
   PrintN("Bind an IP address: " + lpszServerAddr)
   
@@ -36,31 +37,26 @@ If hLibrary
   While 1
     lTotal = lTotal + 1
     
-    Define *lpszBuffer = AllocateMemory(256)
-    Define lpszMessage.s = "Hi " + lTotal
+    Define lpszMessage.s = "Task #" + lTotal
     
-    If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN("Received: ")
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
-      
-      NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    EndIf
+    NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
+    PrintN("Pushed: " + lpszMessage)
     
-    FreeMemory(*lpszBuffer)
+    Delay(500)
   Wend
   
-  NnClose(hLibrary, Socket)
+  NanomsgSocket::Close(Socket)
   
   CloseConsole()
   
-  NnDllClose(hLibrary)
+  DllClose()
 EndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26
 ; Folding = -
 ; EnableXP
-; Executable = ..\RepServer.exe
-; CurrentDirectory = ..\
+; Executable = ..\..\ModulePushServer.exe
+; CurrentDirectory = ..\..\
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
 ; VersionField3 = PureBasicNanoMsg

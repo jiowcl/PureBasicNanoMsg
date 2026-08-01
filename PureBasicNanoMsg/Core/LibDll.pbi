@@ -28,11 +28,11 @@ Procedure.i NnDllClose(dllInstance.i)
   
   ProcedureReturn #True
 EndProcedure
-; IDE Options = PureBasic 5.72 (Windows - x86)
+; IDE Options = PureBasic 6.40 (Windows - x64)
 ; CursorPosition = 11
 ; Folding = -
 ; EnableXP
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
-; VersionField3 = PureBasicZMQ
+; VersionField3 = PureBasicNanoMsg
 ; VersionField4 = 1.0.0

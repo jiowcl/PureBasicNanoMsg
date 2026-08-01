@@ -20,19 +20,33 @@ DeclareModule NanomsgRuntime
   Declare.i Errno()
   Declare.s Strerror(errnum.i)
   Declare.s Symbol(index.i, *value.Long)
+  Declare.i Term()
+EndDeclareModule
+
+; Declare Module NanomsgMessage
+DeclareModule NanomsgMessage
+  Declare.i Allocmsg(size.i, type.i)
+  Declare.i Reallocmsg(*msg, size.i)
+  Declare.i Freemsg(*msg)
 EndDeclareModule
 
 ; Declare Module NanomsgSocket
 DeclareModule NanomsgSocket
   Declare.i Socket(domain.i, protocol.i)
   Declare.i Close(socket.i)
-  Declare.i Setsockopt(socket.i, level.i, option.i, optval.s, optvallen.i)
-  Declare.i Getsockopt(socket.i, level.i, option.i, *optval, optvallen.i)
+  Declare.i Setsockopt(socket.i, level.i, option.i, *optval, optvallen.i)
+  Declare.i SetsockoptString(socket.i, level.i, option.i, optval.s)
+  Declare.i SetsockoptInt(socket.i, level.i, option.i, optval.i)
+  Declare.i Getsockopt(socket.i, level.i, option.i, *optval, *optvallen)
+  Declare.i GetsockoptInt(socket.i, level.i, option.i, *optval.Long)
   Declare.i Bind(socket.i, addr.s)
   Declare.i Connect(socket.i, addr.s)
   Declare.i Shutdown(socket.i, how.i)
-  Declare.i Send(socket.i, buf.s, len.i, flags.i)
+  Declare.i Send(socket.i, *buf, len.i, flags.i)
+  Declare.i SendString(socket.i, buf.s, len.i, flags.i)
   Declare.i Recv(socket.i, *buf, len.i, flags.i)
+  Declare.i Poll(*fds, nfds.i, timeout.i)
+  Declare.q GetStatistic(socket.i, stat.i)
 EndDeclareModule  
 
 ; Module NanomsgWrapper
@@ -93,7 +107,49 @@ Module NanomsgRuntime
   Procedure.s Symbol(index.i, *value.Long)
     ProcedureReturn NnSymbol(NanomsgWrapper::dllInstance, index, *value)
   EndProcedure
+  
+  ; <summary>
+  ; Term
+  ; </summary>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Term()
+    ProcedureReturn NnTerm(NanomsgWrapper::dllInstance)
+  EndProcedure
 EndModule 
+
+; Module NanomsgMessage
+Module NanomsgMessage
+  IncludeFile "Message.pbi"
+  
+  ; <summary>
+  ; Allocmsg
+  ; </summary>
+  ; <param name="size">integer</param>
+  ; <param name="type">integer</param>
+  ; <returns>Returns pointer.</returns>
+  Procedure.i Allocmsg(size.i, type.i)
+    ProcedureReturn NnAllocmsg(NanomsgWrapper::dllInstance, size, type)
+  EndProcedure
+  
+  ; <summary>
+  ; Reallocmsg
+  ; </summary>
+  ; <param name="msg">pointer</param>
+  ; <param name="size">integer</param>
+  ; <returns>Returns pointer.</returns>
+  Procedure.i Reallocmsg(*msg, size.i)
+    ProcedureReturn NnReallocmsg(NanomsgWrapper::dllInstance, *msg, size)
+  EndProcedure
+  
+  ; <summary>
+  ; Freemsg
+  ; </summary>
+  ; <param name="msg">pointer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Freemsg(*msg)
+    ProcedureReturn NnFreemsg(NanomsgWrapper::dllInstance, *msg)
+  EndProcedure
+EndModule
 
 ; Module NanomsgSocket
 Module NanomsgSocket
@@ -126,12 +182,36 @@ Module NanomsgSocket
   ; <param name="socket">integer</param>
   ; <param name="level">integer</param>
   ; <param name="option">integer</param>
-  ; <param name="optval">string</param>
+  ; <param name="optval">pointer</param>
   ; <param name="optvallen">integer</param>
   ; <returns>Returns integer.</returns>
-  Procedure.i Setsockopt(socket.i, level.i, option.i, optval.s, optvallen.i)
-    ProcedureReturn NnSetsockopt(NanomsgWrapper::dllInstance, socket, level, option, optval, optvallen)
-  EndProcedure  
+  Procedure.i Setsockopt(socket.i, level.i, option.i, *optval, optvallen.i)
+    ProcedureReturn NnSetsockopt(NanomsgWrapper::dllInstance, socket, level, option, *optval, optvallen)
+  EndProcedure
+  
+  ; <summary>
+  ; SetsockoptString
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="level">integer</param>
+  ; <param name="option">integer</param>
+  ; <param name="optval">string</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i SetsockoptString(socket.i, level.i, option.i, optval.s)
+    ProcedureReturn NnSetsockoptString(NanomsgWrapper::dllInstance, socket, level, option, optval)
+  EndProcedure
+  
+  ; <summary>
+  ; SetsockoptInt
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="level">integer</param>
+  ; <param name="option">integer</param>
+  ; <param name="optval">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i SetsockoptInt(socket.i, level.i, option.i, optval.i)
+    ProcedureReturn NnSetsockoptInt(NanomsgWrapper::dllInstance, socket, level, option, optval)
+  EndProcedure
   
   ; <summary>
   ; Getsockopt
@@ -139,11 +219,23 @@ Module NanomsgSocket
   ; <param name="socket">integer</param>
   ; <param name="level">integer</param>
   ; <param name="option">integer</param>
-  ; <param name="*optval">pointer</param>
-  ; <param name="optvallen">integer</param>
+  ; <param name="optval">pointer</param>
+  ; <param name="optvallen">pointer</param>
   ; <returns>Returns integer.</returns>
-  Procedure.i Getsockopt(socket.i, level.i, option.i, *optval, optvallen.i)
-    ProcedureReturn NnGetsockopt(NanomsgWrapper::dllInstance, socket, level, option, *optval, optvallen)
+  Procedure.i Getsockopt(socket.i, level.i, option.i, *optval, *optvallen)
+    ProcedureReturn NnGetsockopt(NanomsgWrapper::dllInstance, socket, level, option, *optval, *optvallen)
+  EndProcedure
+  
+  ; <summary>
+  ; GetsockoptInt
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="level">integer</param>
+  ; <param name="option">integer</param>
+  ; <param name="optval">pointer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i GetsockoptInt(socket.i, level.i, option.i, *optval.Long)
+    ProcedureReturn NnGetsockoptInt(NanomsgWrapper::dllInstance, socket, level, option, *optval)
   EndProcedure
   
   ; <summary>
@@ -180,24 +272,57 @@ Module NanomsgSocket
   ; Send
   ; </summary>
   ; <param name="socket">integer</param>
+  ; <param name="buf">pointer</param>
+  ; <param name="len">integer</param>
+  ; <param name="flags">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Send(socket.i, *buf, len.i, flags.i)
+    ProcedureReturn NnSend(NanomsgWrapper::dllInstance, socket, *buf, len, flags)
+  EndProcedure
+  
+  ; <summary>
+  ; SendString
+  ; </summary>
+  ; <param name="socket">integer</param>
   ; <param name="buf">string</param>
   ; <param name="len">integer</param>
   ; <param name="flags">integer</param>
   ; <returns>Returns integer.</returns>
-  Procedure.i Send(socket.i, buf.s, len.i, flags.i)
-    ProcedureReturn NnSend(NanomsgWrapper::dllInstance, socket, buf, len, flags)
+  Procedure.i SendString(socket.i, buf.s, len.i, flags.i)
+    ProcedureReturn NnSendString(NanomsgWrapper::dllInstance, socket, buf, len, flags)
   EndProcedure
   
   ; <summary>
   ; Recv
   ; </summary>
   ; <param name="socket">integer</param>
-  ; <param name="*buf">integer</param>
+  ; <param name="buf">pointer</param>
   ; <param name="len">integer</param>
   ; <param name="flags">integer</param>
   ; <returns>Returns integer.</returns>
   Procedure.i Recv(socket.i, *buf, len.i, flags.i)
     ProcedureReturn NnRecv(NanomsgWrapper::dllInstance, socket, *buf, len, flags)
+  EndProcedure
+  
+  ; <summary>
+  ; Poll
+  ; </summary>
+  ; <param name="fds">pointer</param>
+  ; <param name="nfds">integer</param>
+  ; <param name="timeout">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Poll(*fds, nfds.i, timeout.i)
+    ProcedureReturn NnPoll(NanomsgWrapper::dllInstance, *fds, nfds, timeout)
+  EndProcedure
+  
+  ; <summary>
+  ; GetStatistic
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="stat">integer</param>
+  ; <returns>Returns quad.</returns>
+  Procedure.q GetStatistic(socket.i, stat.i)
+    ProcedureReturn NnGetStatistic(NanomsgWrapper::dllInstance, socket, stat)
   EndProcedure
 EndModule   
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)

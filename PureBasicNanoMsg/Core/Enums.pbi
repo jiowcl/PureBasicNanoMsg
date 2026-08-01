@@ -8,12 +8,9 @@
 #NN_VERSION_REVISION  = 0
 #NN_VERSION_AGE       = 1
 
-; Socket Types
-#NN_PROTO_REQREP      = 3
-#NN_REQ               = #NN_PROTO_REQREP * 16 + 0
-#NN_REP               = #NN_PROTO_REQREP * 16 + 1
-
-#NN_REQ_RESEND_IVL    = 1
+; Socket Types / Protocols
+#NN_PROTO_PAIR        = 1
+#NN_PAIR              = #NN_PROTO_PAIR * 16 + 0
 
 #NN_PROTO_PUBSUB      = 2
 #NN_PUB               = #NN_PROTO_PUBSUB * 16 + 0
@@ -21,12 +18,42 @@
 #NN_SUB_SUBSCRIBE     = 1
 #NN_SUB_UNSUBSCRIBE   = 2
 
+#NN_PROTO_REQREP      = 3
+#NN_REQ               = #NN_PROTO_REQREP * 16 + 0
+#NN_REP               = #NN_PROTO_REQREP * 16 + 1
+#NN_REQ_RESEND_IVL    = 1
+
+#NN_PROTO_PIPELINE    = 5
+#NN_PUSH              = #NN_PROTO_PIPELINE * 16 + 0
+#NN_PULL              = #NN_PROTO_PIPELINE * 16 + 1
+
+#NN_PROTO_SURVEY      = 6
+#NN_SURVEYOR          = #NN_PROTO_SURVEY * 16 + 2
+#NN_RESPONDENT        = #NN_PROTO_SURVEY * 16 + 3
+#NN_SURVEYOR_DEADLINE = 1
+
+#NN_PROTO_BUS         = 7
+#NN_BUS               = #NN_PROTO_BUS * 16 + 0
+
 ; SP Address Families
 #AF_SP                = 1
 #AF_SP_RAW            = 2
 
+; Transports
+#NN_INPROC            = -1
+#NN_IPC               = -2
 #NN_TCP               = -3
+#NN_WS                = -4
+
 #NN_TCP_NODELAY       = 1
+
+#NN_IPC_SEC_ATTR      = 1
+#NN_IPC_OUTBUFSZ      = 2
+#NN_IPC_INBUFSZ       = 3
+
+#NN_WS_MSG_TYPE       = 1
+#NN_WS_MSG_TYPE_TEXT  = $01
+#NN_WS_MSG_TYPE_BINARY = $02
 
 ; Max Size of an SP Address
 #NN_SOCKADDR_MAX      = 128
@@ -56,11 +83,14 @@
 ; Message Options
 #NN_DONTWAIT          = 1
 
+; Zero-copy Message Size Sentinel (size_t)-1
+#NN_MSG               = -1
+
 ; Ancillary Data
 #PROTO_SP             = 1
 #SP_HDR               = 1
 
-; Socket Mutliplexing Support
+; Socket Multiplexing Support
 #NN_POLLIN            = 1
 #NN_POLLOUT           = 2
 
@@ -205,14 +235,12 @@ CompilerEndIf
 #ETERM            = #NN_HAUSNUMERO + 53
 #EFSM             = #NN_HAUSNUMERO + 54
 
-; Structure
-Structure ZmqMsgT
-  _.b[64]
+; Structure (matches struct nn_pollfd)
+Structure NnPollFd
+  fd.l
+  events.w
+  revents.w
 EndStructure
-
-; Callback Function
-;PrototypeC NnThreadFnProc(vData.i)
-;PrototypeC NnFreeFnProc(vData.i, vHint.i)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 88
 ; FirstLine = 70
@@ -220,5 +248,5 @@ EndStructure
 ; EnableXP
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
-; VersionField3 = PureBasicZMQ
+; VersionField3 = PureBasicNanoMsg
 ; VersionField4 = 1.0.0

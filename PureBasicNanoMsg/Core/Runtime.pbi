@@ -7,8 +7,9 @@
 PrototypeC.i NnErrnoFunc()
 PrototypeC.i NnStrerrorFunc(errnum.i)
 PrototypeC.i NnSymbolFunc(index.i, *value.Long)
+PrototypeC NnTermFunc()
 
-; Zmq Function Declare
+; Nanomsg Function Declare
 
 ; <summary>
 ; NnErrno
@@ -77,6 +78,26 @@ Procedure.s NnSymbol(dllInstance.i, index.i, *value.Long)
 
   ProcedureReturn lResult
 EndProcedure
+
+; <summary>
+; NnTerm
+; </summary>
+; <param name="dllInstance">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnTerm(dllInstance.i)
+  Protected.NnTermFunc pFuncCall
+  
+  If IsLibrary(dllInstance)
+    pFuncCall = GetFunction(dllInstance, "nn_term")
+    
+    If pFuncCall > 0
+      pFuncCall()
+      ProcedureReturn #True
+    EndIf  
+  EndIf
+  
+  ProcedureReturn #False
+EndProcedure
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 72
 ; FirstLine = 22
@@ -84,5 +105,5 @@ EndProcedure
 ; EnableXP
 ; IncludeVersionInfo
 ; VersionField2 = Inwazy Technology
-; VersionField3 = PureBasicZMQ
+; VersionField3 = PureBasicNanoMsg
 ; VersionField4 = 1.0.0
