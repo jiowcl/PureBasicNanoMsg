@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="Example\" pattern="0"/>
     <log show="1"/>
-    <lastopen date="2026-08-01 20:26" user="使用者" host="DESKTOP-K1RBCTS"/>
+    <lastopen date="2026-08-01 22:31" user="使用者" host="DESKTOP-K1RBCTS"/>
   </section>
   <section name="files">
     <file name="Example\Nanomsg.pb">
@@ -61,6 +61,30 @@
     <file name="Example\Module\SubClient.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="+++"/>
       <fingerprint md5="d60e2fcef3cfce53fb7a3aa5ca32fbbd"/>
+    </file>
+    <file name="Example\PairInproc.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="++"/>
+      <fingerprint md5="3bd7b669113ed2f05b7cf659020c7ef3"/>
+    </file>
+    <file name="Example\RespondentClient.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="++"/>
+      <fingerprint md5="4f9ca9b5ac85889450372513c6e961fe"/>
+    </file>
+    <file name="Example\SurveyorServer.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="++"/>
+      <fingerprint md5="f5b8e1f345d2c104fefac6dacfd9ecd8"/>
+    </file>
+    <file name="Example\Module\PairInproc.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="+++"/>
+      <fingerprint md5="a5a79d9748ddf76b238e4d0f36763805"/>
+    </file>
+    <file name="Example\Module\RespondentClient.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="+++"/>
+      <fingerprint md5="712f05d78959bbbe3f3bef910a95bddb"/>
+    </file>
+    <file name="Example\Module\SurveyorServer.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" sortindex="999" panelstate="+++"/>
+      <fingerprint md5="98ca2b626f4fdb1abbfedf38e87a291c"/>
     </file>
   </section>
   <section name="targets">

@@ -43,16 +43,57 @@ jobs:
         Write-Host "Found:"
         Write-Host $compiler.Source
 
-    - name: Execute Test / Compilation Project
+    - name: Compile Examples
       shell: powershell
       run: |
-        cd PureBasicNanoMsg/Example
-        
-        pbcompiler Nanomsg.pb /OUTPUT Nanomsg.exe /QUIET
-        
-        if (Test-Path "Nanomsg.exe") {
-            Write-Host "The Test Program Compiled Successfully!"
-        } else {
-            Write-Error "Compilation Failed; Nanomsg.exe was not Generated."
-            exit 1
+        $exampleDir = "PureBasicNanoMsg/Example"
+        Set-Location $exampleDir
+
+        $outDir = Join-Path (Get-Location) "_ci_out"
+        New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+        $files = @(
+          "Nanomsg.pb",
+          "PubServer.pb",
+          "SubClient.pb",
+          "RepServer.pb",
+          "ReqClient.pb",
+          "PushServer.pb",
+          "PullClient.pb",
+          "SurveyorServer.pb",
+          "RespondentClient.pb",
+          "PairInproc.pb",
+          "Module/PubServer.pb",
+          "Module/SubClient.pb",
+          "Module/RepServer.pb",
+          "Module/ReqClient.pb",
+          "Module/PushServer.pb",
+          "Module/PullClient.pb",
+          "Module/SurveyorServer.pb",
+          "Module/RespondentClient.pb",
+          "Module/PairInproc.pb"
+        )
+
+        $failed = @()
+
+        foreach ($f in $files) {
+          $name = ($f -replace '[\\/]', '-').Replace('.pb', '')
+          $dst = Join-Path $outDir "$name.exe"
+
+          Write-Host "=== Compiling $f ==="
+          & pbcompiler $f /OUTPUT $dst /QUIET
+
+          if (-not (Test-Path $dst)) {
+            Write-Host "FAILED: $f"
+            $failed += $f
+          } else {
+            Write-Host "OK: $f"
+          }
         }
+
+        if ($failed.Count -gt 0) {
+          Write-Error ("Compilation failed for: " + ($failed -join ", "))
+          exit 1
+        }
+
+        Write-Host "All $($files.Count) examples compiled successfully."

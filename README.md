@@ -135,7 +135,11 @@ If DllOpen(lpszLibNnDll)
 EndIf
 ```
 
-More samples under `PureBasicNanoMsg/Example` (PUB/SUB, REQ/REP, PUSH/PULL with `NnPoll`).
+More samples under `PureBasicNanoMsg/Example`:
+
+- PUB/SUB, REQ/REP, PUSH/PULL (with `NnPoll`)
+- Survey (`SurveyorServer` / `RespondentClient`, deadline + `ETIMEDOUT` / `EFSM`)
+- PAIR + `inproc://` smoke test (`PairInproc`)
 
 ## License  
 
@@ -144,8 +148,9 @@ Code released under the MIT license.
 
 ## TODO  
 
-- Survey / Bus / Pair examples  
+- Bus example  
 - `nn_sendmsg` / `nn_recvmsg` / `nn_device`  
+
 
 ## Donation  
 
