@@ -236,11 +236,33 @@ CompilerEndIf
 #EFSM             = #NN_HAUSNUMERO + 54
 
 ; Structure (matches struct nn_pollfd)
-Structure NnPollFd
+Structure NnPollFd Align #PB_Structure_AlignC
   fd.l
   events.w
   revents.w
 EndStructure
+
+; Structure (matches struct nn_iovec)
+Structure NnIovec Align #PB_Structure_AlignC
+  *iov_base
+  iov_len.i
+EndStructure
+
+; Structure (matches struct nn_msghdr)
+Structure NnMsghdr Align #PB_Structure_AlignC
+  *msg_iov.NnIovec
+  msg_iovlen.l
+  *msg_control
+  msg_controllen.i
+EndStructure
+
+; Structure (matches struct nn_cmsghdr)
+Structure NnCmsghdr Align #PB_Structure_AlignC
+  cmsg_len.i
+  cmsg_level.l
+  cmsg_type.l
+EndStructure
+
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 88
 ; FirstLine = 70

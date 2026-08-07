@@ -3,6 +3,13 @@
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
 
+; nn_cmsghdr size on Windows (size_t + int + int), Module-safe
+CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
+  #NN_CMSGHDR_BYTES = 16
+CompilerElse
+  #NN_CMSGHDR_BYTES = 12
+CompilerEndIf
+
 ; Prototype Function
 PrototypeC.i NnSocketFunc(domain.i, protocol.i)
 PrototypeC.i NnCloseFunc(socket.i)
@@ -17,6 +24,9 @@ PrototypeC.i NnSendStrFunc(socket.i, buf.p-Ascii, leng.i, flags.i)
 PrototypeC.i NnRecvFunc(socket.i, *buf, len.i, flags.i)
 PrototypeC.i NnPollFunc(*fds, nfds.i, timeout.i)
 PrototypeC.q NnGetStatisticFunc(socket.i, stat.i)
+PrototypeC.i NnSendmsgFunc(socket.i, *msghdr, flags.i)
+PrototypeC.i NnRecvmsgFunc(socket.i, *msghdr, flags.i)
+PrototypeC.i NnCmsgNxthdrFunc(*mhdr, *cmsg)
 
 ; Nanomsg Function Declare
 
@@ -344,6 +354,137 @@ Procedure.q NnGetStatistic(dllInstance.i, socket.i, stat.i)
     
     If pFuncCall > 0
       lResult = pFuncCall(socket, stat)
+    EndIf
+  EndIf
+  
+  ProcedureReturn lResult
+EndProcedure
+
+; <summary>
+; NnSendmsg
+; </summary>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="msghdr">pointer</param>
+; <param name="flags">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnSendmsg(dllInstance.i, socket.i, *msghdr, flags.i)
+  Protected.i lResult = -1
+  Protected.NnSendmsgFunc pFuncCall
+  
+  If IsLibrary(dllInstance)
+    pFuncCall = GetFunction(dllInstance, "nn_sendmsg")
+    
+    If pFuncCall > 0
+      lResult = pFuncCall(socket, *msghdr, flags)
+    EndIf
+  EndIf
+  
+  ProcedureReturn lResult
+EndProcedure
+
+; <summary>
+; NnRecvmsg
+; </summary>
+; <param name="dllInstance">integer</param>
+; <param name="socket">integer</param>
+; <param name="msghdr">pointer</param>
+; <param name="flags">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnRecvmsg(dllInstance.i, socket.i, *msghdr, flags.i)
+  Protected.i lResult = -1
+  Protected.NnRecvmsgFunc pFuncCall
+  
+  If IsLibrary(dllInstance)
+    pFuncCall = GetFunction(dllInstance, "nn_recvmsg")
+    
+    If pFuncCall > 0
+      lResult = pFuncCall(socket, *msghdr, flags)
+    EndIf
+  EndIf
+  
+  ProcedureReturn lResult
+EndProcedure
+
+; <summary>
+; NnCmsgAlign
+; </summary>
+; <param name="len">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnCmsgAlign(len.i)
+  Protected.i alignSize = SizeOf(Integer)
+  
+  ProcedureReturn (len + alignSize - 1) & ~(alignSize - 1)
+EndProcedure
+
+; <summary>
+; NnCmsgSpace
+; </summary>
+; <param name="len">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnCmsgSpace(len.i)
+  ProcedureReturn NnCmsgAlign(len) + NnCmsgAlign(#NN_CMSGHDR_BYTES)
+EndProcedure
+
+; <summary>
+; NnCmsgLen
+; </summary>
+; <param name="len">integer</param>
+; <returns>Returns integer.</returns>
+Procedure.i NnCmsgLen(len.i)
+  ProcedureReturn NnCmsgAlign(#NN_CMSGHDR_BYTES) + len
+EndProcedure
+
+; <summary>
+; NnCmsgData
+; </summary>
+; <param name="cmsg">pointer</param>
+; <returns>Returns pointer.</returns>
+Procedure.i NnCmsgData(*cmsg)
+  If *cmsg = 0
+    ProcedureReturn 0
+  EndIf
+  
+  ProcedureReturn *cmsg + #NN_CMSGHDR_BYTES
+EndProcedure
+
+; <summary>
+; NnCmsgFirstHdr
+; </summary>
+; <param name="dllInstance">integer</param>
+; <param name="mhdr">pointer</param>
+; <returns>Returns pointer.</returns>
+Procedure.i NnCmsgFirstHdr(dllInstance.i, *mhdr)
+  Protected.i lResult
+  Protected.NnCmsgNxthdrFunc pFuncCall
+  
+  If IsLibrary(dllInstance)
+    pFuncCall = GetFunction(dllInstance, "nn_cmsg_nxthdr_")
+    
+    If pFuncCall > 0
+      lResult = pFuncCall(*mhdr, 0)
+    EndIf
+  EndIf
+  
+  ProcedureReturn lResult
+EndProcedure
+
+; <summary>
+; NnCmsgNxtHdr
+; </summary>
+; <param name="dllInstance">integer</param>
+; <param name="mhdr">pointer</param>
+; <param name="cmsg">pointer</param>
+; <returns>Returns pointer.</returns>
+Procedure.i NnCmsgNxtHdr(dllInstance.i, *mhdr, *cmsg)
+  Protected.i lResult
+  Protected.NnCmsgNxthdrFunc pFuncCall
+  
+  If IsLibrary(dllInstance)
+    pFuncCall = GetFunction(dllInstance, "nn_cmsg_nxthdr_")
+    
+    If pFuncCall > 0
+      lResult = pFuncCall(*mhdr, *cmsg)
     EndIf
   EndIf
   

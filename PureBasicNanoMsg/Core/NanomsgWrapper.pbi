@@ -45,8 +45,16 @@ DeclareModule NanomsgSocket
   Declare.i Send(socket.i, *buf, len.i, flags.i)
   Declare.i SendString(socket.i, buf.s, len.i, flags.i)
   Declare.i Recv(socket.i, *buf, len.i, flags.i)
+  Declare.i Sendmsg(socket.i, *msghdr, flags.i)
+  Declare.i Recvmsg(socket.i, *msghdr, flags.i)
   Declare.i Poll(*fds, nfds.i, timeout.i)
   Declare.q GetStatistic(socket.i, stat.i)
+  Declare.i CmsgAlign(len.i)
+  Declare.i CmsgSpace(len.i)
+  Declare.i CmsgLen(len.i)
+  Declare.i CmsgData(*cmsg)
+  Declare.i CmsgFirstHdr(*mhdr)
+  Declare.i CmsgNxtHdr(*mhdr, *cmsg)
 EndDeclareModule  
 
 ; Module NanomsgWrapper
@@ -305,6 +313,28 @@ Module NanomsgSocket
   EndProcedure
   
   ; <summary>
+  ; Sendmsg
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="msghdr">pointer</param>
+  ; <param name="flags">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Sendmsg(socket.i, *msghdr, flags.i)
+    ProcedureReturn NnSendmsg(NanomsgWrapper::dllInstance, socket, *msghdr, flags)
+  EndProcedure
+  
+  ; <summary>
+  ; Recvmsg
+  ; </summary>
+  ; <param name="socket">integer</param>
+  ; <param name="msghdr">pointer</param>
+  ; <param name="flags">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i Recvmsg(socket.i, *msghdr, flags.i)
+    ProcedureReturn NnRecvmsg(NanomsgWrapper::dllInstance, socket, *msghdr, flags)
+  EndProcedure
+  
+  ; <summary>
   ; Poll
   ; </summary>
   ; <param name="fds">pointer</param>
@@ -323,6 +353,61 @@ Module NanomsgSocket
   ; <returns>Returns quad.</returns>
   Procedure.q GetStatistic(socket.i, stat.i)
     ProcedureReturn NnGetStatistic(NanomsgWrapper::dllInstance, socket, stat)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgAlign
+  ; </summary>
+  ; <param name="len">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i CmsgAlign(len.i)
+    ProcedureReturn NnCmsgAlign(len)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgSpace
+  ; </summary>
+  ; <param name="len">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i CmsgSpace(len.i)
+    ProcedureReturn NnCmsgSpace(len)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgLen
+  ; </summary>
+  ; <param name="len">integer</param>
+  ; <returns>Returns integer.</returns>
+  Procedure.i CmsgLen(len.i)
+    ProcedureReturn NnCmsgLen(len)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgData
+  ; </summary>
+  ; <param name="cmsg">pointer</param>
+  ; <returns>Returns pointer.</returns>
+  Procedure.i CmsgData(*cmsg)
+    ProcedureReturn NnCmsgData(*cmsg)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgFirstHdr
+  ; </summary>
+  ; <param name="mhdr">pointer</param>
+  ; <returns>Returns pointer.</returns>
+  Procedure.i CmsgFirstHdr(*mhdr)
+    ProcedureReturn NnCmsgFirstHdr(NanomsgWrapper::dllInstance, *mhdr)
+  EndProcedure
+  
+  ; <summary>
+  ; CmsgNxtHdr
+  ; </summary>
+  ; <param name="mhdr">pointer</param>
+  ; <param name="cmsg">pointer</param>
+  ; <returns>Returns pointer.</returns>
+  Procedure.i CmsgNxtHdr(*mhdr, *cmsg)
+    ProcedureReturn NnCmsgNxtHdr(NanomsgWrapper::dllInstance, *mhdr, *cmsg)
   EndProcedure
 EndModule   
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)

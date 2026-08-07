@@ -27,6 +27,8 @@ Bundled runtime: `PureBasicNanoMsg/Library/x64/nanomsg.dll` (x64 only).
 - `NnSend` takes a buffer pointer; use `NnSendString` / `SendString` for text.
 - `NnPoll` + `NnPollFd` support non-blocking readiness checks.
 - Zero-copy helpers: `NnAllocmsg` / `NnReallocmsg` / `NnFreemsg` with `#NN_MSG`.
+- Scatter/gather: `NnSendmsg` / `NnRecvmsg` with `NnIovec` / `NnMsghdr` (see `SendmsgIovec` example).
+- Ancillary helpers: `NnCmsgFirstHdr` / `NnCmsgNxtHdr` / `NnCmsgData` / `NnCmsgSpace` / `NnCmsgLen`.
 
 ## Example  
 
@@ -140,6 +142,7 @@ More samples under `PureBasicNanoMsg/Example`:
 - PUB/SUB, REQ/REP, PUSH/PULL (with `NnPoll`)
 - Survey (`SurveyorServer` / `RespondentClient`, deadline + `ETIMEDOUT` / `EFSM`)
 - PAIR + `inproc://` smoke test (`PairInproc`)
+- `nn_sendmsg` / `nn_recvmsg` iovec smoke test (`SendmsgIovec`)
 
 ## License  
 
@@ -149,7 +152,7 @@ Code released under the MIT license.
 ## TODO  
 
 - Bus example  
-- `nn_sendmsg` / `nn_recvmsg` / `nn_device`  
+- `nn_device`  
 
 
 ## Donation  

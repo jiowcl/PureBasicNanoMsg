@@ -63,6 +63,7 @@ jobs:
           "SurveyorServer.pb",
           "RespondentClient.pb",
           "PairInproc.pb",
+          "SendmsgIovec.pb",
           "Module/PubServer.pb",
           "Module/SubClient.pb",
           "Module/RepServer.pb",
@@ -71,7 +72,8 @@ jobs:
           "Module/PullClient.pb",
           "Module/SurveyorServer.pb",
           "Module/RespondentClient.pb",
-          "Module/PairInproc.pb"
+          "Module/PairInproc.pb",
+          "Module/SendmsgIovec.pb"
         )
 
         $failed = @()
