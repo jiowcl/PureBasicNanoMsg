@@ -1,16 +1,19 @@
 # PureBasicNanoMsg  
 
-Nanomsg Wrapper for PureBasic Programming Language.
+Nanomsg/NNG Wrapper for PureBasic Programming Language.
 
 ![GitHub](https://img.shields.io/github/license/jiowcl/PureBasicNanoMsg.svg)
 ![PureBasic](https://img.shields.io/badge/language-PureBasic-blue.svg)
 ![Dependency](https://img.shields.io/badge/Protocol-nanomsg-3A3A3A?style=flat-square)
+
+> **Note:** nanomsg is no longer maintained. For new work, use the sibling package [`PureBasicNNG`](./PureBasicNNG) (NNG / nanomsg-next-gen). The APIs are not compatible.
 
 ## Environment  
 
 - Windows 7 above (recommend)  
 - PureBasic 6.0 above (recommend)  
 - [Nanomsg](https://github.com/nanomsg/nanomsg)  
+- [NNG](https://github.com/nanomsg/nng)  
 
 ## How to Build  
 
@@ -162,7 +165,6 @@ Code released under the MIT license.
 
 - Bus example  
 - `nn_device`  
-
 
 ## Donation  
 

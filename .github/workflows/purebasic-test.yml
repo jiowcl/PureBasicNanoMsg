@@ -98,4 +98,72 @@ jobs:
           exit 1
         }
 
-        Write-Host "All $($files.Count) examples compiled successfully."
+        Write-Host "All $($files.Count) nanomsg examples compiled successfully."
+
+    - name: Compile NNG Examples
+      shell: powershell
+      run: |
+        $exampleDir = "PureBasicNNG/Example"
+        Set-Location $exampleDir
+
+        $outDir = Join-Path (Get-Location) "_ci_out"
+        New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+        $files = @(
+          "Nng.pb",
+          "PubServer.pb",
+          "SubClient.pb",
+          "RepServer.pb",
+          "ReqClient.pb",
+          "PushServer.pb",
+          "PullClient.pb",
+          "SurveyorServer.pb",
+          "RespondentClient.pb",
+          "PairInproc.pb",
+          "Module/PubServer.pb",
+          "Module/SubClient.pb",
+          "Module/RepServer.pb",
+          "Module/ReqClient.pb",
+          "Module/PushServer.pb",
+          "Module/PullClient.pb",
+          "Module/SurveyorServer.pb",
+          "Module/RespondentClient.pb",
+          "Module/PairInproc.pb"
+        )
+
+        $failed = @()
+
+        foreach ($f in $files) {
+          $name = ($f -replace '[\\/]', '-').Replace('.pb', '')
+          $dst = Join-Path $outDir "$name.exe"
+
+          Write-Host "=== Compiling $f ==="
+          & pbcompiler $f /OUTPUT $dst /QUIET
+
+          if (-not (Test-Path $dst)) {
+            Write-Host "FAILED: $f"
+            $failed += $f
+          } else {
+            Write-Host "OK: $f"
+          }
+        }
+
+        if ($failed.Count -gt 0) {
+          Write-Error ("Compilation failed for: " + ($failed -join ", "))
+          exit 1
+        }
+
+        Write-Host "All $($files.Count) NNG examples compiled successfully."
+
+    - name: Run NNG PairInproc Smoke Test
+      shell: powershell
+      run: |
+        $root = Resolve-Path "PureBasicNNG"
+        $exe = Join-Path $root "Example\_ci_out\Module-PairInproc.exe"
+        Set-Location $root
+        " " | & $exe
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "PairInproc smoke test failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+        }
+        Write-Host "PairInproc smoke test passed."
