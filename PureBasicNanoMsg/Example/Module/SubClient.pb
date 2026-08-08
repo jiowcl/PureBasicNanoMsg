@@ -36,15 +36,15 @@ If DllOpen(lpszLibNnDll)
   
   While 1
     Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
     
-    If NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
+    ; nn_recv does not append a null terminator; use the returned length.
+    If recvRc >= 0
+      PrintN(PeekS(*lpszBuffer, recvRc, #PB_Ascii))
     EndIf
     
     FreeMemory(*lpszBuffer)
-    
-    Delay(10)
-  Wend   
+  Wend
   
   NanomsgSocket::Close(Socket)
   

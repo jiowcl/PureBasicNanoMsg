@@ -62,14 +62,22 @@ If DllOpen(lpszLibNnDll)
   Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PUB)
   Define Rc.i = NanomsgSocket::Bind(Socket, lpszServerAddr)
   
-  PrintN("Bind an IP address: " + lpszServerAddr)
+  If Rc < 0
+    PrintN("Bind failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  Else
+    PrintN("Bind an IP address: " + lpszServerAddr)
+  EndIf
   
   While 1
     Define lpszTopic.s = "quotes"
+    ; Prefix must match NN_SUB_SUBSCRIBE filter on the subscriber.
     Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
     
-    NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
-    PrintN("Published: " + lpszMessage)
+    Rc = NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
+    
+    If Rc >= 0
+      PrintN("Published: " + lpszMessage)
+    EndIf
     
     Delay(500)
   Wend
@@ -118,14 +126,14 @@ If DllOpen(lpszLibNnDll)
   
   While 1
     Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
     
-    If NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
+    ; nn_recv does not append a null terminator; use the returned length.
+    If recvRc >= 0
+      PrintN(PeekS(*lpszBuffer, recvRc, #PB_Ascii))
     EndIf
     
     FreeMemory(*lpszBuffer)
-    
-    Delay(10)
   Wend   
   
   NanomsgSocket::Close(Socket)

@@ -30,14 +30,22 @@ If DllOpen(lpszLibNnDll)
   Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PUB)
   Define Rc.i = NanomsgSocket::Bind(Socket, lpszServerAddr)
   
-  PrintN("Bind an IP address: " + lpszServerAddr)
+  If Rc < 0
+    PrintN("Bind failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  Else
+    PrintN("Bind an IP address: " + lpszServerAddr)
+  EndIf
   
   While 1
     Define lpszTopic.s = "quotes"
+    ; Prefix must match NN_SUB_SUBSCRIBE filter on the subscriber.
     Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
     
-    NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
-    PrintN("Published: " + lpszMessage)
+    Rc = NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
+    
+    If Rc >= 0
+      PrintN("Published: " + lpszMessage)
+    EndIf
     
     Delay(500)
   Wend

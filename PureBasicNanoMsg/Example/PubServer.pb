@@ -29,14 +29,22 @@ If hLibrary
   Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PUB)
   Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
   
-  PrintN("Bind an IP address: " + lpszServerAddr)
+  If Rc < 0
+    PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  Else
+    PrintN("Bind an IP address: " + lpszServerAddr)
+  EndIf
   
   While 1
     Define lpszTopic.s = "quotes"
+    ; Prefix must match NN_SUB_SUBSCRIBE filter on the subscriber.
     Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
     
-    NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    PrintN("Published: " + lpszMessage)
+    Rc = NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
+    
+    If Rc >= 0
+      PrintN("Published: " + lpszMessage)
+    EndIf
     
     Delay(500)
   Wend

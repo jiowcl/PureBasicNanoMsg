@@ -35,15 +35,15 @@ If hLibrary
   
   While 1
     Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
     
-    If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
+    ; nn_recv does not append a null terminator; use the returned length.
+    If recvRc >= 0
+      PrintN(PeekS(*lpszBuffer, recvRc, #PB_Ascii))
     EndIf
     
     FreeMemory(*lpszBuffer)
-    
-    Delay(10)
-  Wend   
+  Wend
   
   NnClose(hLibrary, Socket)
   
