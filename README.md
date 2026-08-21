@@ -17,8 +17,8 @@ Nanomsg/NNG Wrapper for PureBasic Programming Language.
 
 ## How to Build  
 
-Building requires PureBasic Compiler and test under Windows 10.  
-Module features require PureBasic 5.20 and above.
+Building requires PureBasic Compiler and test under Windows 11.  
+Module features require PureBasic 5.20 and above.  
 
 Bundled runtime: `PureBasicNanoMsg/Library/x64/nanomsg.dll` (x64 only).
 
@@ -153,6 +153,7 @@ More samples under `PureBasicNanoMsg/Example`:
 
 - PUB/SUB, REQ/REP, PUSH/PULL (with `NnPoll`)
 - Survey (`SurveyorServer` / `RespondentClient`, deadline + `ETIMEDOUT` / `EFSM`)
+- Bus (`BusServer` / `BusClient`, bidirectional with `NnPoll`)
 - PAIR + `inproc://` smoke test (`PairInproc`)
 - `nn_sendmsg` / `nn_recvmsg` iovec smoke test (`SendmsgIovec`)
 
@@ -163,7 +164,6 @@ Code released under the MIT license.
 
 ## TODO  
 
-- Bus example  
 - `nn_device`  
 
 ## Donation  

@@ -62,6 +62,8 @@ jobs:
           "PullClient.pb",
           "SurveyorServer.pb",
           "RespondentClient.pb",
+          "BusServer.pb",
+          "BusClient.pb",
           "PairInproc.pb",
           "SendmsgIovec.pb",
           "Module/PubServer.pb",
@@ -72,6 +74,8 @@ jobs:
           "Module/PullClient.pb",
           "Module/SurveyorServer.pb",
           "Module/RespondentClient.pb",
+          "Module/BusServer.pb",
+          "Module/BusClient.pb",
           "Module/PairInproc.pb",
           "Module/SendmsgIovec.pb"
         )
