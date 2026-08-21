@@ -3,6 +3,8 @@
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
 
+IncludeFile "FuncTable.pbi"
+
 ; Function Declare
 Declare.i NnDllOpen(lpszDllPath.s)
 Declare.i NnDllClose(dllInstance.i)
@@ -13,7 +15,13 @@ Declare.i NnDllClose(dllInstance.i)
 ; <param name="lpszDllPath">string</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnDllOpen(lpszDllPath.s)
-  ProcedureReturn OpenLibrary(#PB_Any, lpszDllPath)
+  Protected.i dllInstance = OpenLibrary(#PB_Any, lpszDllPath)
+  
+  If dllInstance
+    NnEnsureFuncs(dllInstance)
+  EndIf
+  
+  ProcedureReturn dllInstance
 EndProcedure
 
 ; <summary>
@@ -22,13 +30,15 @@ EndProcedure
 ; <param name="dllInstance">integer</param>
 ; <returns>Returns integer.</returns>
 Procedure.i NnDllClose(dllInstance.i)
+  NnClearFuncs(dllInstance)
+  
   If IsLibrary(dllInstance)
     CloseLibrary(dllInstance)
   EndIf
   
   ProcedureReturn #True
 EndProcedure
-; IDE Options = PureBasic 6.40 (Windows - x64)
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 11
 ; Folding = -
 ; EnableXP

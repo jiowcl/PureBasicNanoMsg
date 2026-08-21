@@ -33,6 +33,7 @@ Bundled runtime: `PureBasicNanoMsg/Library/x64/nanomsg.dll` (x64 only).
 - Zero-copy helpers: `NnAllocmsg` / `NnReallocmsg` / `NnFreemsg` with `#NN_MSG`.
 - Scatter/gather: `NnSendmsg` / `NnRecvmsg` with `NnIovec` / `NnMsghdr` (see `SendmsgIovec` example).
 - Ancillary helpers: `NnCmsgFirstHdr` / `NnCmsgNxtHdr` / `NnCmsgData` / `NnCmsgSpace` / `NnCmsgLen`.
+- `NnDllOpen` resolves all `nn_*` exports once into `gNnFuncs` (`FuncTable.pbi`); later calls reuse the cache.
 
 ## Example  
 

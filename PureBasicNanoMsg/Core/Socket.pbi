@@ -10,23 +10,7 @@ CompilerElse
   #NN_CMSGHDR_BYTES = 12
 CompilerEndIf
 
-; Prototype Function
-PrototypeC.i NnSocketFunc(domain.i, protocol.i)
-PrototypeC.i NnCloseFunc(socket.i)
-PrototypeC.i NnSetsockoptFunc(socket.i, level.i, option.i, *optval, optvallen.i)
-PrototypeC.i NnSetsockoptStrFunc(socket.i, level.i, option.i, optval.p-Ascii, optvallen.i)
-PrototypeC.i NnGetsockoptFunc(socket.i, level.i, option.i, *optval, *optvallen)
-PrototypeC.i NnBindFunc(socket.i, addr.p-Ascii)
-PrototypeC.i NnConnectFunc(socket.i, addr.p-Ascii)
-PrototypeC.i NnShutdownFunc(socket.i, how.i)
-PrototypeC.i NnSendFunc(socket.i, *buf, leng.i, flags.i)
-PrototypeC.i NnSendStrFunc(socket.i, buf.p-Ascii, leng.i, flags.i)
-PrototypeC.i NnRecvFunc(socket.i, *buf, len.i, flags.i)
-PrototypeC.i NnPollFunc(*fds, nfds.i, timeout.i)
-PrototypeC.q NnGetStatisticFunc(socket.i, stat.i)
-PrototypeC.i NnSendmsgFunc(socket.i, *msghdr, flags.i)
-PrototypeC.i NnRecvmsgFunc(socket.i, *msghdr, flags.i)
-PrototypeC.i NnCmsgNxthdrFunc(*mhdr, *cmsg)
+IncludeFile "FuncTable.pbi"
 
 ; Nanomsg Function Declare
 
@@ -41,10 +25,10 @@ Procedure.i NnSocket(dllInstance.i, domain.i, protocol.i)
   Protected.i lResult = -1
   Protected.NnSocketFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_socket")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_socket
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(domain, protocol)
     EndIf
   EndIf
@@ -62,10 +46,10 @@ Procedure.i NnClose(dllInstance.i, socket.i)
   Protected.i lResult = -1
   Protected.NnCloseFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_close")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_close
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket)
     EndIf
   EndIf
@@ -87,10 +71,10 @@ Procedure.i NnSetsockopt(dllInstance.i, socket.i, level.i, option.i, *optval, op
   Protected.i lResult = -1
   Protected.NnSetsockoptFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_setsockopt")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_setsockopt
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, level, option, *optval, optvallen)
     EndIf
   EndIf  
@@ -111,10 +95,10 @@ Procedure.i NnSetsockoptString(dllInstance.i, socket.i, level.i, option.i, optva
   Protected.i lResult = -1
   Protected.NnSetsockoptStrFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_setsockopt")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_setsockopt
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, level, option, optval, Len(optval))
     EndIf
   EndIf  
@@ -151,10 +135,10 @@ Procedure.i NnGetsockopt(dllInstance.i, socket.i, level.i, option.i, *optval, *o
   Protected.i lResult = -1
   Protected.NnGetsockoptFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_getsockopt")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_getsockopt
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, level, option, *optval, *optvallen)
     EndIf
   EndIf  
@@ -188,10 +172,10 @@ Procedure.i NnBind(dllInstance.i, socket.i, addr.s)
   Protected.i lResult = -1
   Protected.NnBindFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_bind")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_bind
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, addr)
     EndIf
   EndIf
@@ -210,10 +194,10 @@ Procedure.i NnConnect(dllInstance.i, socket.i, addr.s)
   Protected.i lResult = -1
   Protected.NnConnectFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_connect")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_connect
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, addr)
     EndIf
   EndIf
@@ -232,10 +216,10 @@ Procedure.i NnShutdown(dllInstance.i, socket.i, how.i)
   Protected.i lResult = -1
   Protected.NnShutdownFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_shutdown")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_shutdown
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, how)
     EndIf
   EndIf
@@ -256,10 +240,10 @@ Procedure.i NnSend(dllInstance.i, socket.i, *buf, len.i, flags.i)
   Protected.i lResult = -1
   Protected.NnSendFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_send")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_send
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, *buf, len, flags)
     EndIf
   EndIf
@@ -280,10 +264,10 @@ Procedure.i NnSendString(dllInstance.i, socket.i, buf.s, len.i, flags.i)
   Protected.i lResult = -1
   Protected.NnSendStrFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_send")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_send
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, buf, len, flags)
     EndIf
   EndIf
@@ -304,10 +288,10 @@ Procedure.i NnRecv(dllInstance.i, socket.i, *buf, len.i, flags.i)
   Protected.i lResult = -1
   Protected.NnRecvFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_recv")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_recv
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, *buf, len, flags)
     EndIf
   EndIf
@@ -327,10 +311,10 @@ Procedure.i NnPoll(dllInstance.i, *fds, nfds.i, timeout.i)
   Protected.i lResult = -1
   Protected.NnPollFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_poll")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_poll
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(*fds, nfds, timeout)
     EndIf
   EndIf
@@ -349,10 +333,10 @@ Procedure.q NnGetStatistic(dllInstance.i, socket.i, stat.i)
   Protected.q lResult
   Protected.NnGetStatisticFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_get_statistic")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_get_statistic
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, stat)
     EndIf
   EndIf
@@ -372,10 +356,10 @@ Procedure.i NnSendmsg(dllInstance.i, socket.i, *msghdr, flags.i)
   Protected.i lResult = -1
   Protected.NnSendmsgFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_sendmsg")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_sendmsg
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, *msghdr, flags)
     EndIf
   EndIf
@@ -395,10 +379,10 @@ Procedure.i NnRecvmsg(dllInstance.i, socket.i, *msghdr, flags.i)
   Protected.i lResult = -1
   Protected.NnRecvmsgFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_recvmsg")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_recvmsg
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(socket, *msghdr, flags)
     EndIf
   EndIf
@@ -458,10 +442,10 @@ Procedure.i NnCmsgFirstHdr(dllInstance.i, *mhdr)
   Protected.i lResult
   Protected.NnCmsgNxthdrFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_cmsg_nxthdr_")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_cmsg_nxthdr
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(*mhdr, 0)
     EndIf
   EndIf
@@ -480,10 +464,10 @@ Procedure.i NnCmsgNxtHdr(dllInstance.i, *mhdr, *cmsg)
   Protected.i lResult
   Protected.NnCmsgNxthdrFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_cmsg_nxthdr_")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_cmsg_nxthdr
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(*mhdr, *cmsg)
     EndIf
   EndIf
@@ -491,8 +475,7 @@ Procedure.i NnCmsgNxtHdr(dllInstance.i, *mhdr, *cmsg)
   ProcedureReturn lResult
 EndProcedure
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 59
-; FirstLine = 18
+; CursorPosition = 1
 ; Folding = ---
 ; EnableXP
 ; IncludeVersionInfo

@@ -3,11 +3,7 @@
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
 
-; Prototype Function
-PrototypeC.i NnErrnoFunc()
-PrototypeC.i NnStrerrorFunc(errnum.i)
-PrototypeC.i NnSymbolFunc(index.i, *value.Long)
-PrototypeC NnTermFunc()
+IncludeFile "FuncTable.pbi"
 
 ; Nanomsg Function Declare
 
@@ -20,12 +16,12 @@ Procedure.i NnErrno(dllInstance.i)
   Protected.i lResult
   Protected.NnErrnoFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_errno")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_errno
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall()
-    EndIf  
+    EndIf
   EndIf
   
   ProcedureReturn lResult
@@ -41,12 +37,12 @@ Procedure.s NnStrerror(dllInstance.i, errnum.i)
   Protected.s lResult
   Protected.NnStrerrorFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_strerror")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_strerror
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = PeekS(pFuncCall(errnum), -1, #PB_UTF8)
-    EndIf  
+    EndIf
   EndIf
   
   ProcedureReturn lResult
@@ -64,15 +60,15 @@ Procedure.s NnSymbol(dllInstance.i, index.i, *value.Long)
   Protected.NnSymbolFunc pFuncCall
   Protected.i lNnSymbolResult
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_symbol")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_symbol
     
-    If pFuncCall > 0
+    If pFuncCall
       lNnSymbolResult = pFuncCall(index, *value)
       
       If lNnSymbolResult > 0
         lResult = PeekS(lNnSymbolResult, -1, #PB_UTF8)
-      EndIf  
+      EndIf
     EndIf
   EndIf
 
@@ -87,20 +83,20 @@ EndProcedure
 Procedure.i NnTerm(dllInstance.i)
   Protected.NnTermFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_term")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_term
     
-    If pFuncCall > 0
+    If pFuncCall
       pFuncCall()
+      
       ProcedureReturn #True
-    EndIf  
+    EndIf
   EndIf
   
   ProcedureReturn #False
 EndProcedure
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 72
-; FirstLine = 22
+; CursorPosition = 1
 ; Folding = -
 ; EnableXP
 ; IncludeVersionInfo

@@ -3,10 +3,7 @@
 ;  Code released under the MIT license.
 ;--------------------------------------------------------------------------------------------
 
-; Prototype Function
-PrototypeC.i NnAllocmsgFunc(size.i, type.i)
-PrototypeC.i NnReallocmsgFunc(*msg, size.i)
-PrototypeC.i NnFreemsgFunc(*msg)
+IncludeFile "FuncTable.pbi"
 
 ; Nanomsg Function Declare
 
@@ -21,10 +18,10 @@ Procedure.i NnAllocmsg(dllInstance.i, size.i, type.i = 0)
   Protected.i lResult
   Protected.NnAllocmsgFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_allocmsg")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_allocmsg
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(size, type)
     EndIf
   EndIf
@@ -43,10 +40,10 @@ Procedure.i NnReallocmsg(dllInstance.i, *msg, size.i)
   Protected.i lResult
   Protected.NnReallocmsgFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_reallocmsg")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_reallocmsg
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(*msg, size)
     EndIf
   EndIf
@@ -64,10 +61,10 @@ Procedure.i NnFreemsg(dllInstance.i, *msg)
   Protected.i lResult = -1
   Protected.NnFreemsgFunc pFuncCall
   
-  If IsLibrary(dllInstance)
-    pFuncCall = GetFunction(dllInstance, "nn_freemsg")
+  If NnEnsureFuncs(dllInstance)
+    pFuncCall = gNnFuncs\nn_freemsg
     
-    If pFuncCall > 0
+    If pFuncCall
       lResult = pFuncCall(*msg)
     EndIf
   EndIf
