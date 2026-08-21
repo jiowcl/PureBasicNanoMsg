@@ -23,38 +23,55 @@ Global lpszServerAddr.s = "tcp://*:1689"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PUB)
+
+If Socket < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+PrintN("Bind an IP address: " + lpszServerAddr)
+
+While 1
+  Define lpszTopic.s = "quotes"
+  ; Prefix must match NN_SUB_SUBSCRIBE filter on the subscriber.
+  Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
   
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PUB)
-  Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+  Rc = NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
   
-  If Rc < 0
-    PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  If Rc >= 0
+    PrintN("Published: " + lpszMessage)
   Else
-    PrintN("Bind an IP address: " + lpszServerAddr)
+    PrintN("Send failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
   EndIf
   
-  While 1
-    Define lpszTopic.s = "quotes"
-    ; Prefix must match NN_SUB_SUBSCRIBE filter on the subscriber.
-    Define lpszMessage.s = lpszTopic + "#Bid:" + Random(9000, 1000) + ",Ask:" + Random(9000, 1000)
-    
-    Rc = NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    
-    If Rc >= 0
-      PrintN("Published: " + lpszMessage)
-    EndIf
-    
-    Delay(500)
-  Wend
-  
-  NnClose(hLibrary, Socket)
-  
-  CloseConsole()
-  
-  NnDllClose(hLibrary)
-EndIf
+  Delay(500)
+Wend
+
+NnClose(hLibrary, Socket)
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26
 ; FirstLine = 1

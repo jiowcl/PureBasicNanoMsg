@@ -19,64 +19,80 @@ CompilerElse
   CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
-; Bus node A binds; other nodes connect here.
 Global lpszServerAddr.s = "tcp://*:1703"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_BUS)
+
+If Socket < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+PrintN("Bus node A bound: " + lpszServerAddr)
+
+Define lTotal.l = 0
+Dim fds.NnPollFd(0)
+
+While 1
+  fds(0)\fd = Socket
+  fds(0)\events = #NN_POLLIN
+  fds(0)\revents = 0
   
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_BUS)
-  Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+  Rc = NnPoll(hLibrary, @fds(0), 1, 500)
   
   If Rc < 0
-    PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
-  Else
-    PrintN("Bus node A bound: " + lpszServerAddr)
-  EndIf
-  
-  Define lTotal.l = 0
-  Dim fds.NnPollFd(0)
-  
-  While 1
-    fds(0)\fd = Socket
-    fds(0)\events = #NN_POLLIN
-    fds(0)\revents = 0
+    PrintN("Poll failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  ElseIf Rc > 0 And (fds(0)\revents & #NN_POLLIN)
+    Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
     
-    Rc = NnPoll(hLibrary, @fds(0), 1, 500)
-    
-    If Rc > 0 And (fds(0)\revents & #NN_POLLIN)
-      Define *lpszBuffer = AllocateMemory(256)
-      Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
-      
-      If recvRc >= 0
-        PrintN("Received: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
-      EndIf
-      
-      FreeMemory(*lpszBuffer)
+    If recvRc >= 0
+      PrintN("Received: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
     Else
-      ; Poll timeout: publish a bus message (not delivered back to self).
-      lTotal = lTotal + 1
-      
-      Define lpszMessage.s = "From BusA #" + lTotal
-      
-      If NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0) >= 0
-        PrintN("Sent: " + lpszMessage)
-      EndIf
+      PrintN("Recv failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
     EndIf
-  Wend
-  
-  NnClose(hLibrary, Socket)
-  
-  CloseConsole()
-  
-  NnDllClose(hLibrary)
-EndIf
+    
+    FreeMemory(*lpszBuffer)
+  Else
+    lTotal = lTotal + 1
+    
+    Define lpszMessage.s = "From BusA #" + lTotal
+    
+    If NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0) < 0
+      PrintN("Send failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+    Else
+      PrintN("Sent: " + lpszMessage)
+    EndIf
+  EndIf
+Wend
+
+NnClose(hLibrary, Socket)
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\BusServer.exe
 ; CurrentDirectory = ../
 ; IncludeVersionInfo

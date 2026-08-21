@@ -24,35 +24,66 @@ CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://*:1702"
 
-If DllOpen(lpszLibNnDll)
+If DllOpen(lpszLibNnDll) = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_SURVEYOR)
+
+If Socket < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Define Rc.i
+
+Rc = NanomsgSocket::SetsockoptInt(Socket, #NN_SURVEYOR, #NN_SURVEYOR_DEADLINE, 2000)
+
+If Rc < 0
+  PrintN("Setsockopt deadline failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Rc = NanomsgSocket::Bind(Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+PrintN("Bind an IP address: " + lpszServerAddr)
+
+Define lTotal.l = 0
+
+While 1
+  lTotal = lTotal + 1
   
-  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_SURVEYOR)
-  Define Rc.i
+  Define lpszSurvey.s = "Survey #" + lTotal
   
-  ; Wait up to 2000 ms for respondent replies after each survey.
-  Rc = NanomsgSocket::SetsockoptInt(Socket, #NN_SURVEYOR, #NN_SURVEYOR_DEADLINE, 2000)
-  Rc = NanomsgSocket::Bind(Socket, lpszServerAddr)
-  
-  PrintN("Bind an IP address: " + lpszServerAddr)
-  
-  Define lTotal.l = 0
-  
-  While 1
-    lTotal = lTotal + 1
-    
-    Define lpszSurvey.s = "Survey #" + lTotal
-    
-    NanomsgSocket::SendString(Socket, lpszSurvey, Len(lpszSurvey), 0)
+  If NanomsgSocket::SendString(Socket, lpszSurvey, Len(lpszSurvey), 0) < 0
+    PrintN("Send failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  Else
     PrintN("Survey sent: " + lpszSurvey)
     
-    ; Collect responses until the survey deadline (ETIMEDOUT).
     While 1
       Define *lpszBuffer = AllocateMemory(256)
       Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
       
       If recvRc >= 0
-        PrintN("Response: " + PeekS(*lpszBuffer, -1, #PB_UTF8))
+        PrintN("Response: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
         FreeMemory(*lpszBuffer)
       Else
         Define err.i = NanomsgRuntime::Errno()
@@ -69,20 +100,15 @@ If DllOpen(lpszLibNnDll)
         Break
       EndIf
     Wend
-    
-    Delay(1000)
-  Wend
+  EndIf
   
-  NanomsgSocket::Close(Socket)
-  
-  CloseConsole()
-  
-  DllClose()
-EndIf
+  Delay(1000)
+Wend
+
+NanomsgSocket::Close(Socket)
+CloseConsole()
+DllClose()
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModuleSurveyorServer.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo

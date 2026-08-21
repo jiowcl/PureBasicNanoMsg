@@ -24,45 +24,66 @@ CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://localhost:1701"
 
-If DllOpen(lpszLibNnDll)
+If DllOpen(lpszLibNnDll) = 0
   OpenConsole()
-  
-  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PULL)
-  Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
-  
-  PrintN("Connect to Server: " + lpszServerAddr)
-  
-  Dim fds.NnPollFd(0)
-  
-  While 1
-    fds(0)\fd = Socket
-    fds(0)\events = #NN_POLLIN
-    fds(0)\revents = 0
-    
-    If NanomsgSocket::Poll(@fds(0), 1, 1000) > 0
-      If fds(0)\revents & #NN_POLLIN
-        Define *lpszBuffer = AllocateMemory(256)
-        
-        If NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-          PrintN("Pulled: " + PeekS(*lpszBuffer, -1, #PB_UTF8))
-        EndIf
-        
-        FreeMemory(*lpszBuffer)
-      EndIf
-    EndIf
-  Wend
-  
-  NanomsgSocket::Close(Socket)
-  
-  Input()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
   CloseConsole()
-  
-  DllClose()
+  End 1
 EndIf
+
+OpenConsole()
+
+Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PULL)
+
+If Socket < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Connect failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+PrintN("Connect to Server: " + lpszServerAddr)
+
+Dim fds.NnPollFd(0)
+
+While 1
+  fds(0)\fd = Socket
+  fds(0)\events = #NN_POLLIN
+  fds(0)\revents = 0
+  
+  Rc = NanomsgSocket::Poll(@fds(0), 1, 1000)
+  
+  If Rc < 0
+    PrintN("Poll failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  ElseIf Rc > 0 And (fds(0)\revents & #NN_POLLIN)
+    Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
+    
+    If recvRc >= 0
+      PrintN("Pulled: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
+    Else
+      PrintN("Recv failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    EndIf
+    
+    FreeMemory(*lpszBuffer)
+  EndIf
+Wend
+
+NanomsgSocket::Close(Socket)
+Input()
+CloseConsole()
+DllClose()
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModulePullClient.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo

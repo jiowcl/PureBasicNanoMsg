@@ -23,38 +23,61 @@ Global lpszServerAddr.s = "tcp://*:1700"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
-  
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_REP)
-  Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
-  
-  PrintN("Bind an IP address: " + lpszServerAddr)
-  
-  Define lTotal.l = 0
-  
-  While 1
-    lTotal = lTotal + 1
-    
-    Define *lpszBuffer = AllocateMemory(256)
-    Define lpszMessage.s = "Hi " + lTotal
-    
-    If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      PrintN("Received: ")
-      PrintN(PeekS(*lpszBuffer, -1, #PB_UTF8))
-      
-      NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0)
-    EndIf
-    
-    FreeMemory(*lpszBuffer)
-  Wend
-  
-  NnClose(hLibrary, Socket)
-  
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
   CloseConsole()
-  
-  NnDllClose(hLibrary)
+  End 1
 EndIf
+
+OpenConsole()
+
+Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_REP)
+
+If Socket < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Define Rc.i = NnBind(hLibrary, Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+PrintN("Bind an IP address: " + lpszServerAddr)
+
+Define lTotal.l = 0
+
+While 1
+  lTotal = lTotal + 1
+  
+  Define *lpszBuffer = AllocateMemory(256)
+  Define lpszMessage.s = "Hi " + lTotal
+  Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
+  
+  If recvRc >= 0
+    PrintN("Received: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
+    
+    If NnSendString(hLibrary, Socket, lpszMessage, Len(lpszMessage), 0) < 0
+      PrintN("Send failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+    EndIf
+  Else
+    PrintN("Recv failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  EndIf
+  
+  FreeMemory(*lpszBuffer)
+Wend
+
+NnClose(hLibrary, Socket)
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26
 ; Folding = -

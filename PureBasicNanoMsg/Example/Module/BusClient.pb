@@ -22,63 +22,79 @@ CompilerElse
   CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
-; Bus node B connects to node A.
 Global lpszServerAddr.s = "tcp://localhost:1703"
 
-If DllOpen(lpszLibNnDll)
+If DllOpen(lpszLibNnDll) = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_BUS)
+
+If Socket < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Connect failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+PrintN("Bus node B connected: " + lpszServerAddr)
+
+Define lTotal.l = 0
+Dim fds.NnPollFd(0)
+
+While 1
+  fds(0)\fd = Socket
+  fds(0)\events = #NN_POLLIN
+  fds(0)\revents = 0
   
-  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_BUS)
-  Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
+  Rc = NanomsgSocket::Poll(@fds(0), 1, 500)
   
   If Rc < 0
-    PrintN("Connect failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
-  Else
-    PrintN("Bus node B connected: " + lpszServerAddr)
-  EndIf
-  
-  Define lTotal.l = 0
-  Dim fds.NnPollFd(0)
-  
-  While 1
-    fds(0)\fd = Socket
-    fds(0)\events = #NN_POLLIN
-    fds(0)\revents = 0
+    PrintN("Poll failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  ElseIf Rc > 0 And (fds(0)\revents & #NN_POLLIN)
+    Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
     
-    Rc = NanomsgSocket::Poll(@fds(0), 1, 500)
-    
-    If Rc > 0 And (fds(0)\revents & #NN_POLLIN)
-      Define *lpszBuffer = AllocateMemory(256)
-      Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
-      
-      If recvRc >= 0
-        PrintN("Received: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
-      EndIf
-      
-      FreeMemory(*lpszBuffer)
+    If recvRc >= 0
+      PrintN("Received: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
     Else
-      ; Poll timeout: publish a bus message (not delivered back to self).
-      lTotal = lTotal + 1
-      
-      Define lpszMessage.s = "From BusB #" + lTotal
-      
-      If NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0) >= 0
-        PrintN("Sent: " + lpszMessage)
-      EndIf
+      PrintN("Recv failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
     EndIf
-  Wend
-  
-  NanomsgSocket::Close(Socket)
-  
-  Input()
-  CloseConsole()
-  
-  DllClose()
-EndIf
+    
+    FreeMemory(*lpszBuffer)
+  Else
+    lTotal = lTotal + 1
+    
+    Define lpszMessage.s = "From BusB #" + lTotal
+    
+    If NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0) < 0
+      PrintN("Send failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    Else
+      PrintN("Sent: " + lpszMessage)
+    EndIf
+  EndIf
+Wend
+
+NanomsgSocket::Close(Socket)
+Input()
+CloseConsole()
+DllClose()
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModuleBusClient.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo

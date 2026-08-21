@@ -23,41 +23,65 @@ Global lpszServerAddr.s = "tcp://localhost:1701"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
-  
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PULL)
-  Define Rc.i = NnConnect(hLibrary, Socket, lpszServerAddr)
-  
-  PrintN("Connect to Server: " + lpszServerAddr)
-  
-  Dim fds.NnPollFd(0)
-  
-  While 1
-    fds(0)\fd = Socket
-    fds(0)\events = #NN_POLLIN
-    fds(0)\revents = 0
-    
-    If NnPoll(hLibrary, @fds(0), 1, 1000) > 0
-      If fds(0)\revents & #NN_POLLIN
-        Define *lpszBuffer = AllocateMemory(256)
-        
-        If NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-          PrintN("Pulled: " + PeekS(*lpszBuffer, -1, #PB_UTF8))
-        EndIf
-        
-        FreeMemory(*lpszBuffer)
-      EndIf
-    EndIf
-  Wend
-  
-  NnClose(hLibrary, Socket)
-  
-  Input()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
   CloseConsole()
-  
-  NnDllClose(hLibrary)
+  End 1
 EndIf
+
+OpenConsole()
+
+Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_PULL)
+
+If Socket < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Define Rc.i = NnConnect(hLibrary, Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Connect failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+PrintN("Connect to Server: " + lpszServerAddr)
+
+Dim fds.NnPollFd(0)
+
+While 1
+  fds(0)\fd = Socket
+  fds(0)\events = #NN_POLLIN
+  fds(0)\revents = 0
+  
+  Rc = NnPoll(hLibrary, @fds(0), 1, 1000)
+  
+  If Rc < 0
+    PrintN("Poll failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  ElseIf Rc > 0 And (fds(0)\revents & #NN_POLLIN)
+    Define *lpszBuffer = AllocateMemory(256)
+    Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
+    
+    If recvRc >= 0
+      PrintN("Pulled: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
+    Else
+      PrintN("Recv failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+    EndIf
+    
+    FreeMemory(*lpszBuffer)
+  EndIf
+Wend
+
+NnClose(hLibrary, Socket)
+Input()
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26
 ; Folding = -

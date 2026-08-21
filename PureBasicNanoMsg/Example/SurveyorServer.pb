@@ -23,26 +23,59 @@ Global lpszServerAddr.s = "tcp://*:1702"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_SURVEYOR)
+
+If Socket < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Define Rc.i
+
+; Wait up to 2000 ms for respondent replies after each survey.
+Rc = NnSetsockoptInt(hLibrary, Socket, #NN_SURVEYOR, #NN_SURVEYOR_DEADLINE, 2000)
+
+If Rc < 0
+  PrintN("Setsockopt deadline failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+Rc = NnBind(hLibrary, Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  NnClose(hLibrary, Socket)
+  CloseConsole()
+  NnDllClose(hLibrary)
+  End 1
+EndIf
+
+PrintN("Bind an IP address: " + lpszServerAddr)
+
+Define lTotal.l = 0
+
+While 1
+  lTotal = lTotal + 1
   
-  Define Socket.i = NnSocket(hLibrary, #AF_SP, #NN_SURVEYOR)
-  Define Rc.i
+  Define lpszSurvey.s = "Survey #" + lTotal
   
-  ; Wait up to 2000 ms for respondent replies after each survey.
-  Rc = NnSetsockoptInt(hLibrary, Socket, #NN_SURVEYOR, #NN_SURVEYOR_DEADLINE, 2000)
-  Rc = NnBind(hLibrary, Socket, lpszServerAddr)
-  
-  PrintN("Bind an IP address: " + lpszServerAddr)
-  
-  Define lTotal.l = 0
-  
-  While 1
-    lTotal = lTotal + 1
-    
-    Define lpszSurvey.s = "Survey #" + lTotal
-    
-    NnSendString(hLibrary, Socket, lpszSurvey, Len(lpszSurvey), 0)
+  If NnSendString(hLibrary, Socket, lpszSurvey, Len(lpszSurvey), 0) < 0
+    PrintN("Send failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  Else
     PrintN("Survey sent: " + lpszSurvey)
     
     ; Collect responses until the survey deadline (ETIMEDOUT).
@@ -51,7 +84,7 @@ If hLibrary
       Define recvRc.i = NnRecv(hLibrary, Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
       
       If recvRc >= 0
-        PrintN("Response: " + PeekS(*lpszBuffer, -1, #PB_UTF8))
+        PrintN("Response: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
         FreeMemory(*lpszBuffer)
       Else
         Define err.i = NnErrno(hLibrary)
@@ -68,16 +101,14 @@ If hLibrary
         Break
       EndIf
     Wend
-    
-    Delay(1000)
-  Wend
+  EndIf
   
-  NnClose(hLibrary, Socket)
-  
-  CloseConsole()
-  
-  NnDllClose(hLibrary)
-EndIf
+  Delay(1000)
+Wend
+
+NnClose(hLibrary, Socket)
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26
 ; Folding = -

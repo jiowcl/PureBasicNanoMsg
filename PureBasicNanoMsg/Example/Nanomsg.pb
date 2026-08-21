@@ -21,34 +21,37 @@ CompilerEndIf
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
-  
-  Define errorNo.i
-  
-  Define nnSymbolIndex.i  
-  Define nnSymbolValue.l = 0
-  Define nnSymbolName.s
-  
-  While nnSymbolIndex >= 0
-    nnSymbolName = NnSymbol(hLibrary, nnSymbolIndex, @nnSymbolValue)
-    
-    If Len(nnSymbolName) = 0 
-      Break 
-    EndIf
-    
-    PrintN("NanoMsg Symbol: " + nnSymbolName + " " + nnSymbolValue)
-    
-    errorNo = NnErrno(hLibrary)
-    
-    nnSymbolIndex = nnSymbolIndex + 1
-  Wend  
-  
-  Input()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
   CloseConsole()
-  
-  NnDllClose(hLibrary)
+  End 1
 EndIf
+
+OpenConsole()
+
+Define errorNo.i
+Define nnSymbolIndex.i
+Define nnSymbolValue.l = 0
+Define nnSymbolName.s
+
+While nnSymbolIndex >= 0
+  nnSymbolName = NnSymbol(hLibrary, nnSymbolIndex, @nnSymbolValue)
+  
+  If Len(nnSymbolName) = 0
+    Break
+  EndIf
+  
+  PrintN("NanoMsg Symbol: " + nnSymbolName + " " + nnSymbolValue)
+  
+  errorNo = NnErrno(hLibrary)
+  
+  nnSymbolIndex = nnSymbolIndex + 1
+Wend
+
+Input()
+CloseConsole()
+NnDllClose(hLibrary)
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 37
 ; Folding = -

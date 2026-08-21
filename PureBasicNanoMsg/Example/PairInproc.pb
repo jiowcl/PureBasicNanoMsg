@@ -24,69 +24,111 @@ Global lpszAddr.s = "inproc://pb-pair-smoke"
 
 Global hLibrary.i = NnDllOpen(lpszLibNnDll)
 
-If hLibrary
+If hLibrary = 0
   OpenConsole()
-  
-  Define sockA.i = NnSocket(hLibrary, #AF_SP, #NN_PAIR)
-  Define sockB.i = NnSocket(hLibrary, #AF_SP, #NN_PAIR)
-  Define Rc.i
-  
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define sockA.i = NnSocket(hLibrary, #AF_SP, #NN_PAIR)
+Define sockB.i = NnSocket(hLibrary, #AF_SP, #NN_PAIR)
+Define Rc.i
+Define ok.i = #True
+
+If sockA < 0 Or sockB < 0
+  PrintN("Socket failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+  ok = #False
+EndIf
+
+If ok
   Rc = NnBind(hLibrary, sockA, lpszAddr)
+  
+  If Rc < 0
+    PrintN("Bind failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+    ok = #False
+  EndIf
+EndIf
+
+If ok
   Rc = NnConnect(hLibrary, sockB, lpszAddr)
   
-  ; Give the inproc connection a moment to establish.
-  Delay(50)
-  
-  Define lpszPing.s = "ping"
-  Define lpszPong.s = "pong"
-  Define *buffer = AllocateMemory(64)
-  Define ok.i = #True
-  
+  If Rc < 0
+    PrintN("Connect failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
+    ok = #False
+  EndIf
+EndIf
+
+; Give the inproc connection a moment to establish.
+Delay(50)
+
+Define lpszPing.s = "ping"
+Define lpszPong.s = "pong"
+Define *buffer = AllocateMemory(64)
+Define recvRc.i
+
+If ok
   If NnSendString(hLibrary, sockA, lpszPing, Len(lpszPing), 0) < 0
     PrintN("Send ping failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
     ok = #False
   EndIf
+EndIf
+
+If ok
+  recvRc = NnRecv(hLibrary, sockB, *buffer, MemorySize(*buffer), 0)
   
-  If ok And NnRecv(hLibrary, sockB, *buffer, MemorySize(*buffer), 0) < 0
+  If recvRc < 0
     PrintN("Recv ping failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
     ok = #False
-  ElseIf ok
-    PrintN("B received: " + PeekS(*buffer, -1, #PB_UTF8))
+  Else
+    PrintN("B received: " + PeekS(*buffer, recvRc, #PB_Ascii))
   EndIf
-  
-  FillMemory(*buffer, MemorySize(*buffer), 0)
-  
-  If ok And NnSendString(hLibrary, sockB, lpszPong, Len(lpszPong), 0) < 0
+EndIf
+
+FillMemory(*buffer, MemorySize(*buffer), 0)
+
+If ok
+  If NnSendString(hLibrary, sockB, lpszPong, Len(lpszPong), 0) < 0
     PrintN("Send pong failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
     ok = #False
   EndIf
+EndIf
+
+If ok
+  recvRc = NnRecv(hLibrary, sockA, *buffer, MemorySize(*buffer), 0)
   
-  If ok And NnRecv(hLibrary, sockA, *buffer, MemorySize(*buffer), 0) < 0
+  If recvRc < 0
     PrintN("Recv pong failed: " + NnStrerror(hLibrary, NnErrno(hLibrary)))
     ok = #False
-  ElseIf ok
-    PrintN("A received: " + PeekS(*buffer, -1, #PB_UTF8))
-  EndIf
-  
-  FreeMemory(*buffer)
-  
-  NnClose(hLibrary, sockA)
-  NnClose(hLibrary, sockB)
-  
-  If ok
-    PrintN("PAIR inproc smoke test OK.")
   Else
-    PrintN("PAIR inproc smoke test FAILED.")
+    PrintN("A received: " + PeekS(*buffer, recvRc, #PB_Ascii))
   EndIf
-  
-  Input()
-  CloseConsole()
-  
-  NnDllClose(hLibrary)
-  
-  If ok = #False
-    End 1
-  EndIf
+EndIf
+
+FreeMemory(*buffer)
+
+If sockA >= 0
+  NnClose(hLibrary, sockA)
+EndIf
+
+If sockB >= 0
+  NnClose(hLibrary, sockB)
+EndIf
+
+If ok
+  PrintN("PAIR inproc smoke test OK.")
+Else
+  PrintN("PAIR inproc smoke test FAILED.")
+EndIf
+
+Input()
+CloseConsole()
+NnDllClose(hLibrary)
+
+If ok = #False
+  End 1
 EndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 26

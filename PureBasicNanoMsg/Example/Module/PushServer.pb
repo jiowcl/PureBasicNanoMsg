@@ -24,37 +24,56 @@ CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://*:1701"
 
-If DllOpen(lpszLibNnDll)
+If DllOpen(lpszLibNnDll) = 0
   OpenConsole()
-  
-  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PUSH)
-  Define Rc.i = NanomsgSocket::Bind(Socket, lpszServerAddr)
-  
-  PrintN("Bind an IP address: " + lpszServerAddr)
-  
-  Define lTotal.l = 0
-  
-  While 1
-    lTotal = lTotal + 1
-    
-    Define lpszMessage.s = "Task #" + lTotal
-    
-    NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0)
-    PrintN("Pushed: " + lpszMessage)
-    
-    Delay(500)
-  Wend
-  
-  NanomsgSocket::Close(Socket)
-  
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
   CloseConsole()
-  
-  DllClose()
+  End 1
 EndIf
+
+OpenConsole()
+
+Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_PUSH)
+
+If Socket < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Define Rc.i = NanomsgSocket::Bind(Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Bind failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+PrintN("Bind an IP address: " + lpszServerAddr)
+
+Define lTotal.l = 0
+
+While 1
+  lTotal = lTotal + 1
+  
+  Define lpszMessage.s = "Task #" + lTotal
+  
+  If NanomsgSocket::SendString(Socket, lpszMessage, Len(lpszMessage), 0) < 0
+    PrintN("Send failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  Else
+    PrintN("Pushed: " + lpszMessage)
+  EndIf
+  
+  Delay(500)
+Wend
+
+NanomsgSocket::Close(Socket)
+CloseConsole()
+DllClose()
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModulePushServer.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo

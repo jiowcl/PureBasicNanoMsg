@@ -24,44 +24,66 @@ CompilerEndIf
 
 Global lpszServerAddr.s = "tcp://localhost:1702"
 
-If DllOpen(lpszLibNnDll)
+If DllOpen(lpszLibNnDll) = 0
   OpenConsole()
+  PrintN("Failed to open nanomsg.dll: " + lpszLibNnDll)
+  CloseConsole()
+  End 1
+EndIf
+
+OpenConsole()
+
+Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_RESPONDENT)
+
+If Socket < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
+
+If Rc < 0
+  PrintN("Connect failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  NanomsgSocket::Close(Socket)
+  CloseConsole()
+  DllClose()
+  End 1
+EndIf
+
+PrintN("Connect to Surveyor: " + lpszServerAddr)
+
+Define lTotal.l = 0
+
+While 1
+  Define *lpszBuffer = AllocateMemory(256)
+  Define recvRc.i = NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0)
   
-  Define Socket.i = NanomsgSocket::Socket(#AF_SP, #NN_RESPONDENT)
-  Define Rc.i = NanomsgSocket::Connect(Socket, lpszServerAddr)
-  
-  PrintN("Connect to Surveyor: " + lpszServerAddr)
-  
-  Define lTotal.l = 0
-  
-  While 1
-    Define *lpszBuffer = AllocateMemory(256)
+  If recvRc >= 0
+    lTotal = lTotal + 1
     
-    If NanomsgSocket::Recv(Socket, *lpszBuffer, MemorySize(*lpszBuffer), 0) >= 0
-      lTotal = lTotal + 1
-      
-      PrintN("Survey: " + PeekS(*lpszBuffer, -1, #PB_UTF8))
-      
-      Define lpszReply.s = "Reply #" + lTotal + " from respondent"
-      
-      NanomsgSocket::SendString(Socket, lpszReply, Len(lpszReply), 0)
+    PrintN("Survey: " + PeekS(*lpszBuffer, recvRc, #PB_Ascii))
+    
+    Define lpszReply.s = "Reply #" + lTotal + " from respondent"
+    
+    If NanomsgSocket::SendString(Socket, lpszReply, Len(lpszReply), 0) < 0
+      PrintN("Send failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    Else
       PrintN("Responded: " + lpszReply)
     EndIf
-    
-    FreeMemory(*lpszBuffer)
-  Wend
+  Else
+    PrintN("Recv failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  EndIf
   
-  NanomsgSocket::Close(Socket)
-  
-  Input()
-  CloseConsole()
-  
-  DllClose()
-EndIf
+  FreeMemory(*lpszBuffer)
+Wend
+
+NanomsgSocket::Close(Socket)
+Input()
+CloseConsole()
+DllClose()
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModuleRespondentClient.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo

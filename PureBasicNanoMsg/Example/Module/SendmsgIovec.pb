@@ -22,7 +22,6 @@ CompilerElse
   CompilerError "Only x64 nanomsg.dll is bundled."
 CompilerEndIf
 
-; Scatter/gather via nn_sendmsg / nn_recvmsg (PAIR + inproc).
 Global lpszAddr.s = "inproc://pb-sendmsg-iovec"
 
 If DllOpen(lpszLibNnDll) = 0
@@ -39,8 +38,29 @@ Define sockB.i = NanomsgSocket::Socket(#AF_SP, #NN_PAIR)
 Define Rc.i
 Define ok.i = #True
 
-Rc = NanomsgSocket::Bind(sockA, lpszAddr)
-Rc = NanomsgSocket::Connect(sockB, lpszAddr)
+If sockA < 0 Or sockB < 0
+  PrintN("Socket failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+  ok = #False
+EndIf
+
+If ok
+  Rc = NanomsgSocket::Bind(sockA, lpszAddr)
+  
+  If Rc < 0
+    PrintN("Bind failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    ok = #False
+  EndIf
+EndIf
+
+If ok
+  Rc = NanomsgSocket::Connect(sockB, lpszAddr)
+  
+  If Rc < 0
+    PrintN("Connect failed: " + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    ok = #False
+  EndIf
+EndIf
+
 Delay(50)
 
 Define *seg1 = AllocateMemory(2)
@@ -52,26 +72,26 @@ Define hdr.NnMsghdr
 PokeS(*seg1, "AB", 2, #PB_Ascii)
 PokeS(*seg2, "CDEF", 4, #PB_Ascii)
 
-; Send two iovec segments as one message: "AB" + "CDEF"
-iov(0)\iov_base = *seg1
-iov(0)\iov_len = 2
-iov(1)\iov_base = *seg2
-iov(1)\iov_len = 4
-
-FillMemory(@hdr, SizeOf(NnMsghdr), 0)
-hdr\msg_iov = @iov(0)
-hdr\msg_iovlen = 2
-
-Rc = NanomsgSocket::Sendmsg(sockB, @hdr, 0)
-
-If Rc <> 6
-  PrintN("Sendmsg failed, rc=" + Str(Rc) + " err=" + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
-  ok = #False
-Else
-  PrintN("Sendmsg OK, bytes=" + Str(Rc))
+If ok
+  iov(0)\iov_base = *seg1
+  iov(0)\iov_len = 2
+  iov(1)\iov_base = *seg2
+  iov(1)\iov_len = 4
+  
+  FillMemory(@hdr, SizeOf(NnMsghdr), 0)
+  hdr\msg_iov = @iov(0)
+  hdr\msg_iovlen = 2
+  
+  Rc = NanomsgSocket::Sendmsg(sockB, @hdr, 0)
+  
+  If Rc <> 6
+    PrintN("Sendmsg failed, rc=" + Str(Rc) + " err=" + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
+    ok = #False
+  Else
+    PrintN("Sendmsg OK, bytes=" + Str(Rc))
+  EndIf
 EndIf
 
-; Receive into two iovec segments (4 + 2 bytes).
 If ok
   FillMemory(*recvBuf, 6, 0)
   FillMemory(@hdr, SizeOf(NnMsghdr), 0)
@@ -89,7 +109,7 @@ If ok
     PrintN("Recvmsg failed, rc=" + Str(Rc) + " err=" + NanomsgRuntime::Strerror(NanomsgRuntime::Errno()))
     ok = #False
   Else
-    Define got.s = PeekS(*recvBuf, 6, #PB_Ascii)
+    Define got.s = PeekS(*recvBuf, Rc, #PB_Ascii)
     
     PrintN("Recvmsg OK, bytes=" + Str(Rc) + " data=" + got)
     
@@ -103,8 +123,14 @@ EndIf
 FreeMemory(*seg1)
 FreeMemory(*seg2)
 FreeMemory(*recvBuf)
-NanomsgSocket::Close(sockA)
-NanomsgSocket::Close(sockB)
+
+If sockA >= 0
+  NanomsgSocket::Close(sockA)
+EndIf
+
+If sockB >= 0
+  NanomsgSocket::Close(sockB)
+EndIf
 
 If ok
   PrintN("Sendmsg/Recvmsg iovec smoke test OK.")
@@ -113,16 +139,12 @@ Else
 EndIf
 
 CloseConsole()
-
 DllClose()
 
 If ok = #False
   End 1
 EndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 26
-; Folding = -
-; EnableXP
 ; Executable = ..\..\ModuleSendmsgIovec.exe
 ; CurrentDirectory = ..\..\
 ; IncludeVersionInfo
