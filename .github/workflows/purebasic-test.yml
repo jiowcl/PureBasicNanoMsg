@@ -124,6 +124,7 @@ jobs:
           "SurveyorServer.pb",
           "RespondentClient.pb",
           "PairInproc.pb",
+          "Module/Message.pb",
           "Module/PubServer.pb",
           "Module/SubClient.pb",
           "Module/RepServer.pb",

@@ -7,6 +7,7 @@ XIncludeFile "LibDll.pbi"
 XIncludeFile "Enums.pbi"
 XIncludeFile "Runtime.pbi"
 XIncludeFile "Socket.pbi"
+XIncludeFile "Message.pbi"
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 10
 ; EnableXP

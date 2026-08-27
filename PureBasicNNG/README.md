@@ -28,6 +28,10 @@ Bundled runtime: `Library/x64/nng.dll` (x64 only).
 - Use `Listen` / `Dial` instead of nanomsg `Bind` / `Connect`.
 - `Recv` (Module) returns the byte count on success, or `-1` on failure; read `NngRuntime::LastError()` for the `nng_err`.
 - Low-level `NngRecv` takes an in/out size pointer (`*sz`), matching the C API.
+- `NngMessage::Alloc` creates an opaque `nng_msg` pointer. The caller owns allocated and received messages and must call `NngMessage::Free`.
+- `NngMessage::Sendmsg` transfers message ownership to NNG on success; `NngMessage::Recvmsg` returns a message owned by the caller.
+- Message bodies and headers are accessed with `Body` / `Length` and `Header` / `HeaderLen`; use `Append`, `AppendString`, `InsertText`, `HeaderAppend`, and the typed `U16` / `U32` / `U64` helpers. `InsertText` is named differently because `InsertString` is a PureBasic command.
+- `BodyTrim` / `BodyChop` remove bytes from the body; `HeaderTrim` / `HeaderChop` do the same for the header. The `Header*U16/U32/U64` helpers decode and remove typed values.
 - Socket options use string names (`#NNG_OPT_RECVTIMEO`, …) with typed setters (`SetMs` / `SetInt` / `SetSize`).
 - SUB topics use `Subscribe` / `Unsubscribe` (`nng_sub0_socket_subscribe`).
 - Call `nng_init` via `DllOpen` (Module) or `NngInit` (low-level); pair with `DllClose` / `NngFini`.
@@ -108,6 +112,7 @@ More samples under `Example`:
 - PUB/SUB, REQ/REP, PUSH/PULL (recv-timeout instead of `nn_poll`)
 - Survey (`SurveyorServer` / `RespondentClient`)
 - PAIR + `inproc://` smoke test (`PairInproc`)
+- Message allocation, headers, typed values, and `Sendmsg` / `Recvmsg` (`Module/Message`)
 
 ## Nanomsg vs NNG (quick map)
 
@@ -127,7 +132,6 @@ Code released under the MIT license.
 
 ## TODO
 
-- `nng_msg_*` / `Sendmsg` / `Recvmsg`
 - dialer / listener fine-grained control
 - `nng_aio` asynchronous API
 - Bus example
